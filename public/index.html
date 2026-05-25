@@ -796,19 +796,20 @@ function getStoredFBConfig() {
 }
 
 function saveFirebaseConfig() {
+  const clean = id => document.getElementById(id).value.trim().replace(/^["'`]|["'`]$/g,'');
   const cfg = {
-    apiKey: document.getElementById('fb_apiKey').value.trim(),
-    authDomain: document.getElementById('fb_authDomain').value.trim(),
-    databaseURL: document.getElementById('fb_databaseURL').value.trim(),
-    projectId: document.getElementById('fb_projectId').value.trim(),
-    storageBucket: document.getElementById('fb_storageBucket').value.trim(),
-    messagingSenderId: document.getElementById('fb_messagingSenderId').value.trim(),
-    appId: document.getElementById('fb_appId').value.trim(),
+    apiKey: clean('fb_apiKey'),
+    authDomain: clean('fb_authDomain'),
+    databaseURL: clean('fb_databaseURL'),
+    projectId: clean('fb_projectId'),
+    storageBucket: clean('fb_storageBucket'),
+    messagingSenderId: clean('fb_messagingSenderId'),
+    appId: clean('fb_appId'),
   };
   if(!cfg.apiKey){ showToast('API Key를 입력하세요','error'); return; }
   localStorage.setItem('nova_fbConfig', JSON.stringify(cfg));
   updateFBStatus();
-  showToast('Firebase 설정이 저장되었습니다. Google 로그인 버튼을 클릭하세요.','info');
+  showToast('Firebase 설정 저장 완료! Google 로그인 버튼을 클릭하세요.','info');
 }
 
 function updateFBStatus() {
@@ -838,15 +839,23 @@ function toggleFBSetup() {
 
 function initFirebase(cfg) {
   try {
-    if(S.fbApp) return true; // already initialized
-    S.fbApp = firebase.initializeApp(cfg);
-    S.fbAuth = firebase.auth();
-    if(cfg.databaseURL) {
-      S.fbDB = firebase.database();
+    if(!S.fbApp) {
+      try {
+        S.fbApp = firebase.initializeApp(cfg);
+      } catch(e) {
+        // 이미 초기화된 경우 기존 앱 사용
+        if(e.code === 'app/duplicate-app') {
+          S.fbApp = firebase.app();
+        } else { throw e; }
+      }
     }
+    S.fbAuth = S.fbApp.auth ? S.fbApp.auth() : firebase.auth();
+    const validDB = cfg.databaseURL && !cfg.databaseURL.includes('your-app');
+    if(validDB) { try{ S.fbDB = firebase.database(); }catch(e){} }
     return true;
   } catch(e) {
     console.error('Firebase init error:', e);
+    showToast('Firebase 오류: ' + e.message, 'error');
     return false;
   }
 }
@@ -874,13 +883,25 @@ function loginWithGoogle() {
       S.demoMode = false;
       loadAll();
       if(!teamMembers.length) initDemoData();
-      // Setup realtime chat if DB available
       if(S.fbDB) setupFirebaseChat();
-      afterLogin();
+      try { afterLogin(); } catch(e) {
+        console.error('afterLogin error:', e);
+        // 오류 있어도 강제로 앱 화면 표시
+        document.getElementById('loginScreen').style.display='none';
+        document.getElementById('appScreen').classList.add('show');
+        document.getElementById('sbName').textContent = S.user.name;
+        document.getElementById('topUser').textContent = S.user.name;
+        document.getElementById('sbAva').textContent = S.user.name.substring(0,2);
+        document.getElementById('roleOverlay').classList.add('show');
+      }
     })
     .catch(e => {
-      showToast('Google 로그인 실패: ' + e.message, 'error');
-      console.error(e);
+      console.error('Google login error:', e);
+      let msg = e.message;
+      if(e.code==='auth/unauthorized-domain') msg='이 도메인이 Firebase에 승인되지 않았습니다. Firebase > Authentication > Settings > 승인된 도메인에 Railway URL을 추가하세요.';
+      if(e.code==='auth/popup-blocked') msg='팝업이 차단됐습니다. Safari에서 팝업을 허용해주세요.';
+      if(e.code==='auth/operation-not-allowed') msg='Google 로그인이 비활성화 상태입니다. Firebase > Authentication > Google을 활성화하세요.';
+      showToast(msg, 'error');
     });
 }
 
