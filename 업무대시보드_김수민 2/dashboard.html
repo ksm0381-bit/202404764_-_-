@@ -1,0 +1,1680 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>NOVA Creative — 업무 종합 대시보드</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:       #0d1117;
+  --bg2:      #161b27;
+  --bg3:      #1c2235;
+  --bg4:      #232a40;
+  --border:   #2a3050;
+  --acc:      #6c63ff;
+  --acc2:     #ff6b9d;
+  --acc3:     #00d4aa;
+  --acc4:     #ffa94d;
+  --acc5:     #4fc3f7;
+  --tx:       #e4e8f5;
+  --tx2:      #7a84a8;
+  --tx3:      #3e4668;
+  --ok:       #4caf82;
+  --warn:     #f5a623;
+  --err:      #e05c6b;
+  --info:     #4fc3f7;
+  --sw:       230px;
+  --r:        12px;
+  --rs:       8px;
+}
+html{font-size:13px}
+body{font-family:'Segoe UI','Apple SD Gothic Neo',sans-serif;background:var(--bg);color:var(--tx);display:flex;min-height:100vh;overflow-x:hidden}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* ══ SIDEBAR ══ */
+.sb{width:var(--sw);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100}
+.sb-logo{padding:18px 16px 14px;display:flex;align-items:center;gap:9px;border-bottom:1px solid var(--border)}
+.logo-ic{width:34px;height:34px;background:linear-gradient(135deg,var(--acc),var(--acc2));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;color:#fff;flex-shrink:0}
+.logo-t{font-size:.95rem;font-weight:700}.logo-s{font-size:.62rem;color:var(--tx2);margin-top:1px}
+.sb-nav{flex:1;padding:12px 10px;overflow-y:auto}
+.nav-lbl{font-size:.6rem;font-weight:700;letter-spacing:1px;color:var(--tx3);text-transform:uppercase;padding:10px 8px 4px}
+.ni{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--rs);cursor:pointer;color:var(--tx2);transition:.15s;font-size:.85rem;margin-bottom:1px;user-select:none}
+.ni:hover{background:var(--bg4);color:var(--tx)}
+.ni.on{background:rgba(108,99,255,.15);color:var(--acc);font-weight:600}
+.ni-ic{font-size:1rem;width:18px;text-align:center}
+.nbdg{margin-left:auto;background:var(--acc);color:#fff;border-radius:20px;font-size:.6rem;font-weight:700;padding:1px 6px}
+.nbdg.red{background:var(--err)}
+.nbdg.amber{background:var(--warn)}
+.sb-foot{padding:14px;border-top:1px solid var(--border);display:flex;align-items:center;gap:9px}
+.ua{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--acc3),var(--acc));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;color:#fff;flex-shrink:0}
+.ui-n{font-size:.82rem;font-weight:600}.ui-r{font-size:.67rem;color:var(--tx2)}
+.dot-on{width:7px;height:7px;border-radius:50%;background:var(--ok);flex-shrink:0}
+
+/* ══ MAIN ══ */
+.mn{margin-left:var(--sw);flex:1;display:flex;flex-direction:column;min-width:0}
+
+/* ── TOP BAR ── */
+.tb{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 22px;height:54px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50}
+.tb-title{font-size:.95rem;font-weight:700;flex:1}
+.tb-date{font-size:.75rem;color:var(--tx2);white-space:nowrap}
+.tb-ac{display:flex;align-items:center;gap:8px}
+.sb-bar{display:flex;align-items:center;gap:7px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:0 10px;height:32px}
+.sb-bar input{background:transparent;border:none;outline:none;color:var(--tx);font-size:.8rem;width:140px}
+.sb-bar input::placeholder{color:var(--tx3)}
+.ibtn{width:32px;height:32px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.95rem;color:var(--tx2);transition:.15s;position:relative}
+.ibtn:hover{background:var(--bg4);color:var(--tx)}
+.ibtn .nd{position:absolute;top:5px;right:5px;width:6px;height:6px;border-radius:50%;background:var(--acc2)}
+
+/* ── KPI STRIP ── */
+.kpi-strip{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;padding:18px 22px 0}
+.kc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;display:flex;align-items:center;gap:12px;transition:.15s;cursor:default}
+.kc:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,0,0,.5)}
+.kc-ic{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
+.kc-info{}
+.kc-lbl{font-size:.65rem;color:var(--tx2);font-weight:500;white-space:nowrap}
+.kc-val{font-size:1.5rem;font-weight:800;line-height:1.1}
+.kc-sub{font-size:.62rem;color:var(--tx2);margin-top:2px}
+.kc-up{color:var(--ok)}.kc-dn{color:var(--err)}
+
+/* ── CONTENT ── */
+.content{padding:16px 22px 22px;display:grid;grid-template-columns:1fr 1.4fr .85fr;gap:14px;align-items:start}
+
+/* ── CARD ── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;animation:fi .3s ease both}
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.ch{padding:12px 16px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.ct{font-size:.84rem;font-weight:700;display:flex;align-items:center;gap:7px}
+.ct-ic{font-size:.95rem}
+.ca{font-size:.7rem;color:var(--acc);cursor:pointer;font-weight:600;background:rgba(108,99,255,.1);padding:3px 9px;border-radius:20px;transition:.15s;white-space:nowrap}
+.ca:hover{background:rgba(108,99,255,.2)}
+.cb{padding:12px 16px}
+
+/* ── AI BRIEFING ── */
+.ai-brief{background:linear-gradient(135deg,rgba(108,99,255,.12),rgba(255,107,157,.08));border:1px solid rgba(108,99,255,.3);border-radius:var(--r);padding:14px 16px;margin-bottom:14px}
+.ai-brief-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.ai-badge{background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:20px;font-size:.65rem;font-weight:700;color:#fff;padding:3px 10px;display:flex;align-items:center;gap:5px}
+.ai-brief-date{font-size:.68rem;color:var(--tx2)}
+.ai-item{display:flex;gap:9px;align-items:flex-start;padding:6px 0;border-bottom:1px solid rgba(42,48,80,.5)}
+.ai-item:last-child{border-bottom:none;padding-bottom:0}
+.ai-num{width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;font-size:.65rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.ai-txt{flex:1;font-size:.78rem;line-height:1.45;color:var(--tx)}
+.ai-txt strong{color:var(--acc2)}
+.ai-lv{font-size:.6rem;font-weight:700;padding:2px 6px;border-radius:4px;flex-shrink:0;margin-top:2px}
+.lv-hi{background:rgba(224,92,107,.2);color:var(--err)}
+.lv-md{background:rgba(245,166,35,.2);color:var(--warn)}
+.lv-lo{background:rgba(76,175,130,.2);color:var(--ok)}
+
+/* ── TODO TABS ── */
+.todo-tabs{display:flex;gap:3px;padding:10px 16px 0;background:var(--bg2)}
+.ttab{padding:5px 11px;font-size:.73rem;font-weight:600;color:var(--tx2);cursor:pointer;border-radius:var(--rs) var(--rs) 0 0;border:1px solid transparent;border-bottom:none;transition:.15s}
+.ttab.on{color:var(--tx);background:var(--bg3);border-color:var(--border)}
+.ttab:hover:not(.on){color:var(--tx)}
+.todo-body{background:var(--bg3);border:1px solid var(--border);border-radius:0 var(--rs) var(--rs) var(--rs);padding:8px;display:flex;flex-direction:column;gap:5px;max-height:260px;overflow-y:auto}
+.ti{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs);cursor:pointer;transition:.15s}
+.ti:hover{background:var(--bg4)}
+.ti.done{opacity:.5}
+.ti.done .ti-txt{text-decoration:line-through}
+.tck{width:16px;height:16px;border-radius:4px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.65rem;color:#fff;transition:.15s;margin-top:1px}
+.tck.on{background:var(--acc);border-color:var(--acc)}
+.ti-txt{flex:1;font-size:.78rem;line-height:1.35}
+.ti-meta{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.tbdg{font-size:.58rem;font-weight:700;padding:2px 6px;border-radius:4px;white-space:nowrap}
+.b-hi{background:rgba(224,92,107,.2);color:var(--err)}
+.b-md{background:rgba(245,166,35,.2);color:var(--warn)}
+.b-lo{background:rgba(76,175,130,.2);color:var(--ok)}
+.b-info{background:rgba(79,195,247,.2);color:var(--info)}
+.ti-who{font-size:.62rem;color:var(--tx2)}
+.todo-add{display:flex;align-items:center;gap:7px;padding:7px 10px;border:1px dashed var(--border);border-radius:var(--rs);color:var(--tx3);font-size:.75rem;cursor:pointer;transition:.15s;margin-top:2px}
+.todo-add:hover{border-color:var(--acc);color:var(--acc)}
+
+/* ── 결재 트래커 ── */
+.ap-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.ap-cell{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:10px;text-align:center}
+.ap-val{font-size:1.4rem;font-weight:800;line-height:1}
+.ap-lbl{font-size:.65rem;color:var(--tx2);margin-top:4px}
+.ap-list{display:flex;flex-direction:column;gap:4px;margin-top:10px}
+.ap-item{display:flex;align-items:center;gap:8px;padding:7px 9px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs)}
+.ap-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.ap-title{flex:1;font-size:.75rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ap-stat{font-size:.62rem;font-weight:700;padding:2px 7px;border-radius:4px;white-space:nowrap}
+.s-wait{background:rgba(245,166,35,.2);color:var(--warn)}
+.s-rev{background:rgba(108,99,255,.2);color:var(--acc)}
+.s-ok{background:rgba(76,175,130,.2);color:var(--ok)}
+.s-ret{background:rgba(224,92,107,.2);color:var(--err)}
+
+/* ── 마일스톤 ── */
+.ms-list{display:flex;flex-direction:column;gap:10px}
+.ms-item{}
+.ms-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.ms-name{font-size:.78rem;font-weight:500;display:flex;align-items:center;gap:6px}
+.ms-tag{font-size:.58rem;font-weight:700;padding:2px 6px;border-radius:4px}
+.ms-pct{font-size:.72rem;color:var(--tx2);font-weight:600}
+.ms-bar{height:7px;background:var(--bg4);border-radius:4px;overflow:hidden}
+.ms-fill{height:100%;border-radius:4px;transition:width .8s ease}
+.ms-meta{display:flex;justify-content:space-between;margin-top:3px}
+.ms-due{font-size:.62rem;color:var(--tx2)}
+.ms-due.over{color:var(--err)}
+
+/* ── 회의실 현황 ── */
+.room-list{display:flex;flex-direction:column;gap:7px}
+.room-row{display:flex;align-items:center;gap:8px}
+.room-name{font-size:.75rem;font-weight:500;width:70px;flex-shrink:0}
+.room-bar-wrap{flex:1;height:22px;background:var(--bg4);border-radius:5px;overflow:hidden;position:relative;display:flex}
+.room-seg{height:100%;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:600;color:rgba(255,255,255,.85)}
+.room-seg.booked{background:rgba(108,99,255,.7)}
+.room-seg.free{background:var(--bg4)}
+.room-seg.busy{background:rgba(224,92,107,.7)}
+.room-stat{font-size:.65rem;width:36px;text-align:right;flex-shrink:0}
+.room-stat.ok{color:var(--ok)}.room-stat.busy{color:var(--err)}
+
+/* ── 캘린더 ── */
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.cal-title{font-size:.85rem;font-weight:700}
+.cal-nav{display:flex;gap:4px}
+.cal-btn{width:22px;height:22px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.75rem;color:var(--tx2);transition:.15s}
+.cal-btn:hover{background:var(--bg4);color:var(--tx)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-dow{text-align:center;font-size:.62rem;color:var(--tx2);font-weight:700;padding:3px 0}
+.cal-dow:first-child{color:var(--err)}.cal-dow:last-child{color:var(--info)}
+.cal-day{text-align:center;font-size:.72rem;padding:5px 2px;border-radius:5px;cursor:pointer;transition:.15s;position:relative}
+.cal-day:hover{background:var(--bg4)}
+.cal-day.today{background:var(--acc);color:#fff;font-weight:700}
+.cal-day.has-ev::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--acc3)}
+.cal-day.today::after{background:#fff}
+.cal-day.other{color:var(--tx3)}
+.cal-day.sun{color:var(--err)}.cal-day.sat{color:var(--info)}
+.cal-ev-list{margin-top:10px;display:flex;flex-direction:column;gap:4px}
+.cal-ev{display:flex;align-items:center;gap:7px;font-size:.72rem}
+.cal-ev-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.cal-ev-txt{flex:1;color:var(--tx2)}
+.cal-ev-dt{color:var(--tx3);font-size:.65rem}
+
+/* ── 팀원 ── */
+.tm-list{display:flex;flex-direction:column;gap:6px}
+.tm-row{display:flex;align-items:center;gap:9px;padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);transition:.15s}
+.tm-row:hover{background:var(--bg4)}
+.tma{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:#fff;flex-shrink:0;position:relative}
+.tms{position:absolute;bottom:0;right:0;width:9px;height:9px;border-radius:50%;border:2px solid var(--bg2)}
+.s-on{background:var(--ok)}.s-bz{background:var(--warn)}.s-aw{background:var(--info)}.s-off{background:var(--tx3)}
+.tm-info{flex:1;min-width:0}
+.tm-name{font-size:.8rem;font-weight:600}
+.tm-task{font-size:.67rem;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tm-wb{width:60px}
+.wbar{height:4px;background:var(--bg4);border-radius:2px;overflow:hidden}
+.wfill{height:100%;border-radius:2px}
+.wpct{font-size:.6rem;color:var(--tx2);text-align:right;margin-top:2px}
+
+/* ── 실시간 메트릭 ── */
+.rt-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rt-cell{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:10px 12px}
+.rt-lbl{font-size:.65rem;color:var(--tx2);font-weight:500;margin-bottom:4px}
+.rt-val{font-size:1.25rem;font-weight:800}
+.rt-delta{font-size:.65rem;font-weight:600;margin-top:2px}
+
+/* ── 활동 피드 ── */
+.feed{display:flex;flex-direction:column}
+.fi{display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border)}
+.fi:last-child{border-bottom:none}
+.fav{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;color:#fff;flex-shrink:0}
+.ftx{flex:1;font-size:.75rem;line-height:1.35}
+.ftx strong{color:var(--tx);font-weight:600}
+.ftm{font-size:.63rem;color:var(--tx3);margin-top:1px}
+
+/* ── 출장 현황 ── */
+.trip-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.trip-cell{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:10px;text-align:center}
+.trip-ic{font-size:1.3rem;margin-bottom:4px}
+.trip-val{font-size:1.3rem;font-weight:800}
+.trip-lbl{font-size:.62rem;color:var(--tx2);margin-top:2px}
+.trip-list{display:flex;flex-direction:column;gap:4px}
+.trip-row{display:flex;align-items:center;gap:8px;font-size:.73rem;color:var(--tx2)}
+.trip-row strong{color:var(--tx)}
+
+/* ── 차트 ── */
+.chart-wrap canvas{max-height:190px}
+
+/* 컬러 팔레트 */
+.bp{background:#6c63ff}.bp2{background:#ff6b9d}.bp3{background:#00b894}.bp4{background:#e07b00}.bp5{background:#0288d1}.bp6{background:#00acc1}.bp7{background:#c0392b}.bp8{background:#2e7d52}
+
+/* 반응형 */
+@media(max-width:1300px){.content{grid-template-columns:1fr 1fr}.kpi-strip{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:900px){:root{--sw:0px}.sb{transform:translateX(-230px)}.mn{margin-left:0}.content{grid-template-columns:1fr}.kpi-strip{grid-template-columns:repeat(2,1fr)}}
+
+/* ── 푸터 ── */
+.footer{
+  margin-left:0;padding:12px 22px;
+  background:var(--bg2);border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:.7rem;color:var(--tx2);
+}
+.footer-left{display:flex;align-items:center;gap:10px}
+.footer-school{font-weight:700;color:var(--tx)}
+.footer-divider{color:var(--tx3)}
+.footer-right{display:flex;align-items:center;gap:8px;font-size:.65rem;color:var(--tx3)}
+
+/* ── 모달 오버레이 ── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);
+  z-index:1000;display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .2s ease;
+}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{
+  background:var(--bg2);border:1px solid var(--border);border-radius:16px;
+  width:min(560px,92vw);max-height:85vh;overflow:hidden;display:flex;flex-direction:column;
+  transform:translateY(16px) scale(.97);transition:transform .25s ease;box-shadow:0 20px 60px rgba(0,0,0,.7);
+}
+.modal-overlay.open .modal{transform:translateY(0) scale(1)}
+.modal-hd{
+  padding:18px 22px 14px;border-bottom:1px solid var(--border);
+  display:flex;align-items:flex-start;justify-content:space-between;
+  background:linear-gradient(135deg,rgba(108,99,255,.08),rgba(255,107,157,.05));
+}
+.modal-title{font-size:1rem;font-weight:700;display:flex;align-items:center;gap:8px}
+.modal-subtitle{font-size:.72rem;color:var(--tx2);margin-top:3px}
+.modal-close{width:28px;height:28px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;color:var(--tx2);transition:.15s;flex-shrink:0}
+.modal-close:hover{background:var(--bg4);color:var(--tx)}
+.modal-body{padding:18px 22px;overflow-y:auto;flex:1}
+.modal-section{margin-bottom:16px}
+.modal-section-title{font-size:.72rem;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.modal-section-title::before{content:'';display:inline-block;width:3px;height:11px;background:linear-gradient(var(--acc),var(--acc2));border-radius:2px}
+.modal-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(42,48,80,.4);font-size:.8rem}
+.modal-row:last-child{border-bottom:none}
+.modal-row-label{color:var(--tx2)}
+.modal-row-val{font-weight:600;text-align:right}
+.modal-progress{height:8px;background:var(--bg4);border-radius:4px;overflow:hidden;margin-top:3px}
+.modal-progress-fill{height:100%;border-radius:4px}
+.modal-tag{font-size:.65rem;font-weight:700;padding:3px 9px;border-radius:20px;display:inline-block}
+.modal-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.modal-chip{font-size:.72rem;padding:4px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;color:var(--tx2)}
+.modal-stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.modal-stat{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:10px;text-align:center}
+.modal-stat-val{font-size:1.3rem;font-weight:800}
+.modal-stat-lbl{font-size:.62rem;color:var(--tx2);margin-top:3px}
+.modal-timeline{display:flex;flex-direction:column;gap:0}
+.mt-item{display:flex;gap:10px;align-items:flex-start;padding:8px 0;position:relative}
+.mt-item::before{content:'';position:absolute;left:11px;top:28px;bottom:-8px;width:1px;background:var(--border)}
+.mt-item:last-child::before{display:none}
+.mt-dot{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.65rem;flex-shrink:0;z-index:1}
+.mt-content{flex:1}
+.mt-title{font-size:.78rem;font-weight:600}
+.mt-date{font-size:.65rem;color:var(--tx2);margin-top:2px}
+.modal-footer{padding:14px 22px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;background:var(--bg2)}
+.mbtn{padding:7px 16px;border-radius:var(--rs);font-size:.78rem;font-weight:600;cursor:pointer;transition:.15s;border:1px solid var(--border)}
+.mbtn-pri{background:var(--acc);color:#fff;border-color:var(--acc)}
+.mbtn-pri:hover{background:#5a52e8}
+.mbtn-sec{background:var(--bg3);color:var(--tx2)}
+.mbtn-sec:hover{background:var(--bg4);color:var(--tx)}
+.clickable{cursor:pointer;transition:border-color .15s,background .15s}
+.clickable:hover{border-color:var(--acc)!important}
+</style>
+</head>
+<body>
+
+<!-- ════ SIDEBAR ════ -->
+<aside class="sb">
+  <div class="sb-logo">
+    <div class="logo-ic">N</div>
+    <div><div class="logo-t">NOVA Creative</div><div class="logo-s">업무 종합 대시보드 v2</div></div>
+  </div>
+  <nav class="sb-nav">
+    <div class="nav-lbl">메인</div>
+    <div class="ni on"><span class="ni-ic">📊</span>대시보드 홈</div>
+    <div class="ni"><span class="ni-ic">📁</span>프로젝트<span class="nbdg">8</span></div>
+    <div class="ni"><span class="ni-ic">✅</span>할 일<span class="nbdg">5</span></div>
+    <div class="ni"><span class="ni-ic">📋</span>결재 문서<span class="nbdg red">3</span></div>
+    <div class="ni"><span class="ni-ic">👥</span>팀원 현황</div>
+    <div class="nav-lbl">캠페인 관리</div>
+    <div class="ni"><span class="ni-ic">🎯</span>캠페인 현황<span class="nbdg amber">2</span></div>
+    <div class="ni"><span class="ni-ic">📱</span>SNS 채널</div>
+    <div class="ni"><span class="ni-ic">📈</span>성과 분석</div>
+    <div class="nav-lbl">자료 / 설정</div>
+    <div class="ni"><span class="ni-ic">📅</span>일정 캘린더</div>
+    <div class="ni"><span class="ni-ic">💬</span>팀 메시지</div>
+    <div class="ni"><span class="ni-ic">⚙️</span>설정</div>
+  </nav>
+  <div class="sb-foot">
+    <div class="ua">김</div>
+    <div><div class="ui-n">김수민</div><div class="ui-r">기획팀 · 팀장</div></div>
+    <div class="dot-on"></div>
+  </div>
+</aside>
+
+<!-- ════ MAIN ════ -->
+<main class="mn">
+
+<!-- 탑바 -->
+<header class="tb">
+  <div class="tb-title">📊 업무 종합 대시보드</div>
+  <div class="tb-date" id="liveDate"></div>
+  <div class="tb-ac">
+    <div class="sb-bar"><span>🔍</span><input type="text" placeholder="검색..."/></div>
+    <div class="ibtn" title="알림">🔔<div class="nd"></div></div>
+    <div class="ibtn" title="새로고침" onclick="location.reload()">🔄</div>
+    <div class="ibtn" title="전체화면" onclick="toggleFS()">⛶</div>
+  </div>
+</header>
+
+<!-- KPI 스트립 -->
+<div class="kpi-strip">
+  <div class="kc">
+    <div class="kc-ic bp" style="background:rgba(108,99,255,.15);color:#a89cff">📁</div>
+    <div class="kc-info">
+      <div class="kc-lbl">진행 프로젝트</div>
+      <div class="kc-val" style="color:#a89cff">8</div>
+      <div class="kc-sub kc-up">▲ 2 전월比</div>
+    </div>
+  </div>
+  <div class="kc">
+    <div class="kc-ic" style="background:rgba(245,166,35,.15);color:var(--warn)">⏳</div>
+    <div class="kc-info">
+      <div class="kc-lbl">대기 중</div>
+      <div class="kc-val" style="color:var(--warn)">5</div>
+      <div class="kc-sub" style="color:var(--tx2)">검토·승인 대기</div>
+    </div>
+  </div>
+  <div class="kc">
+    <div class="kc-ic" style="background:rgba(224,92,107,.15);color:var(--err)">🔥</div>
+    <div class="kc-info">
+      <div class="kc-lbl">D-1 마감</div>
+      <div class="kc-val" style="color:var(--err)">3</div>
+      <div class="kc-sub kc-dn">즉시 확인 필요</div>
+    </div>
+  </div>
+  <div class="kc">
+    <div class="kc-ic" style="background:rgba(76,175,130,.15);color:var(--ok)">✅</div>
+    <div class="kc-info">
+      <div class="kc-lbl">주간 완료</div>
+      <div class="kc-val" style="color:var(--ok)">18</div>
+      <div class="kc-sub kc-up">▲ 15% 전주比</div>
+    </div>
+  </div>
+  <div class="kc">
+    <div class="kc-ic" style="background:rgba(255,107,157,.15);color:#ff8fb8">👥</div>
+    <div class="kc-info">
+      <div class="kc-lbl">팀원 온라인</div>
+      <div class="kc-val" style="color:#ff8fb8">6<span style="font-size:1rem;color:var(--tx2)"> /9</span></div>
+      <div class="kc-sub" style="color:var(--tx2)">오늘 기준</div>
+    </div>
+  </div>
+  <div class="kc">
+    <div class="kc-ic" style="background:rgba(255,169,77,.15);color:var(--acc4)">🎯</div>
+    <div class="kc-info">
+      <div class="kc-lbl">이달 캠페인</div>
+      <div class="kc-val" style="color:var(--acc4)">12</div>
+      <div class="kc-sub kc-dn">▼ 1 목표 미달</div>
+    </div>
+  </div>
+</div>
+
+<!-- 메인 컨텐츠 3단 -->
+<div class="content">
+
+  <!-- ══ 1열: AI 브리핑 + 할 일 + 팀원 ══ -->
+  <div style="display:flex;flex-direction:column;gap:14px">
+
+    <!-- AI 데일리 브리핑 -->
+    <div>
+      <div class="ai-brief">
+        <div class="ai-brief-hd">
+          <div class="ai-badge">✨ AI 데일리 브리핑 — 오늘의 Top 3</div>
+          <div class="ai-brief-date" id="briefDate"></div>
+        </div>
+        <div class="ai-item">
+          <div class="ai-num">1</div>
+          <div class="ai-txt"><strong>클라이언트 A 브랜드북</strong> 납기가 오늘입니다. 담당자 이예린 확인 및 최종 파일 전달 즉시 필요.</div>
+          <div class="ai-lv lv-hi">긴급</div>
+        </div>
+        <div class="ai-item">
+          <div class="ai-num">2</div>
+          <div class="ai-txt">5월 <strong>23일 PT 발표</strong> D-4 — 여름 캠페인 기획안 PPT 80% 이상 완성 목표. 정미래 진행상황 공유 요청.</div>
+          <div class="ai-lv lv-md">중요</div>
+        </div>
+        <div class="ai-item">
+          <div class="ai-num">3</div>
+          <div class="ai-txt">이번 주 주간 보고서 작성 마감 <strong>금요일 18:00</strong>. 한소영 데이터 수집 완료 후 공유 예정.</div>
+          <div class="ai-lv lv-lo">일반</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 할 일 (탭) -->
+    <div class="card" style="overflow:visible">
+      <div class="ch" style="border-radius:var(--r) var(--r) 0 0">
+        <div class="ct"><span class="ct-ic">✅</span>오늘 할 일</div>
+        <div class="ca" onclick="addTodo()">+ 추가</div>
+      </div>
+      <div style="padding:0 16px 4px;background:var(--bg2);border-bottom:1px solid var(--border)">
+        <div class="todo-tabs" style="padding:10px 0 0">
+          <div class="ttab on" onclick="filterTodo('all',this)">전체</div>
+          <div class="ttab" onclick="filterTodo('urgent',this)">긴급</div>
+          <div class="ttab" onclick="filterTodo('meeting',this)">회의</div>
+          <div class="ttab" onclick="filterTodo('report',this)">보고</div>
+          <div class="ttab" onclick="filterTodo('general',this)">일반</div>
+        </div>
+      </div>
+      <div class="todo-body" id="todoBody">
+        <!-- 할 일 아이템은 JS가 렌더링 -->
+      </div>
+      <div style="padding:0 16px 12px;background:var(--bg2)">
+        <div class="todo-add" onclick="addTodo()">＋ 새 항목 추가</div>
+      </div>
+    </div>
+
+    <!-- 팀원 현황 -->
+    <div class="card">
+      <div class="ch">
+        <div class="ct"><span class="ct-ic">👥</span>팀원 현황</div>
+        <div class="ca">전체 보기</div>
+      </div>
+      <div class="cb">
+        <div class="tm-list">
+          <div class="tm-row">
+            <div class="tma bp2">김<div class="tms s-on"></div></div>
+            <div class="tm-info"><div class="tm-name">김수민</div><div class="tm-task">클라이언트 A 보고서 검토</div></div>
+            <div class="tm-wb"><div class="wbar"><div class="wfill" style="width:82%;background:#6c63ff"></div></div><div class="wpct">82%</div></div>
+          </div>
+          <div class="tm-row">
+            <div class="tma bp">이<div class="tms s-bz"></div></div>
+            <div class="tm-info"><div class="tm-name">이예린</div><div class="tm-task">브랜드북 최종 작업 중 🔥</div></div>
+            <div class="tm-wb"><div class="wbar"><div class="wfill" style="width:95%;background:var(--err)"></div></div><div class="wpct">95%</div></div>
+          </div>
+          <div class="tm-row">
+            <div class="tma bp3">박<div class="tms s-on"></div></div>
+            <div class="tm-info"><div class="tm-name">박지훈</div><div class="tm-task">인스타 릴스 콘티 작업</div></div>
+            <div class="tm-wb"><div class="wbar"><div class="wfill" style="width:68%;background:var(--acc3)"></div></div><div class="wpct">68%</div></div>
+          </div>
+          <div class="tm-row">
+            <div class="tma bp4">정<div class="tms s-on"></div></div>
+            <div class="tm-info"><div class="tm-name">정미래</div><div class="tm-task">여름 캠페인 기획안 작성</div></div>
+            <div class="tm-wb"><div class="wbar"><div class="wfill" style="width:75%;background:var(--acc4)"></div></div><div class="wpct">75%</div></div>
+          </div>
+          <div class="tm-row">
+            <div class="tma bp5">최<div class="tms s-aw"></div></div>
+            <div class="tm-info"><div class="tm-name">최지호</div><div class="tm-task">외근 — 협력사 미팅 중</div></div>
+            <div class="tm-wb"><div class="wbar"><div class="wfill" style="width:55%;background:#0288d1"></div></div><div class="wpct">55%</div></div>
+          </div>
+          <div class="tm-row">
+            <div class="tma bp7">강<div class="tms s-bz"></div></div>
+            <div class="tm-info"><div class="tm-name">강민준</div><div class="tm-task">팝업스토어 비주얼 디자인</div></div>
+            <div class="tm-wb"><div class="wbar"><div class="wfill" style="width:88%;background:#c0392b"></div></div><div class="wpct">88%</div></div>
+          </div>
+          <div class="tm-row">
+            <div class="tma bp8">오<div class="tms s-off"></div></div>
+            <div class="tm-info"><div class="tm-name">오세준</div><div class="tm-task">오프라인</div></div>
+            <div class="tm-wb"><div class="wbar"><div class="wfill" style="width:40%;background:#2e7d52"></div></div><div class="wpct">40%</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /1열 -->
+
+  <!-- ══ 2열: 실시간 메트릭 + 결재 + 마일스톤 + 회의실 + 차트 ══ -->
+  <div style="display:flex;flex-direction:column;gap:14px">
+
+    <!-- 실시간 현황 -->
+    <div class="card">
+      <div class="ch">
+        <div class="ct"><span class="ct-ic">📡</span>실시간 캠페인 현황</div>
+        <div style="font-size:.65rem;color:var(--ok);display:flex;align-items:center;gap:4px"><span style="animation:pulse 1.5s infinite">●</span> 실시간</div>
+      </div>
+      <div class="cb">
+        <div class="rt-grid">
+          <div class="rt-cell">
+            <div class="rt-lbl">이번 달 캠페인 노출</div>
+            <div class="rt-val" style="color:var(--acc)">1,378<span style="font-size:.8rem">만</span></div>
+            <div class="rt-delta kc-up">▲ 8.3% 전월比</div>
+          </div>
+          <div class="rt-cell">
+            <div class="rt-lbl">클릭률 (CTR)</div>
+            <div class="rt-val" style="color:var(--acc3)">8.92<span style="font-size:.8rem">%</span></div>
+            <div class="rt-delta kc-up">▲ 0.4%p 상승</div>
+          </div>
+          <div class="rt-cell">
+            <div class="rt-lbl">전환 건수</div>
+            <div class="rt-val" style="color:var(--acc4)">1,492</div>
+            <div class="rt-delta kc-dn">▼ 2.1% 전월比</div>
+          </div>
+          <div class="rt-cell">
+            <div class="rt-lbl">SNS 팔로워 증가</div>
+            <div class="rt-val" style="color:var(--acc2)">+190</div>
+            <div class="rt-delta kc-up">▲ 이번 주</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 결재·문서 트래커 -->
+    <div class="card">
+      <div class="ch">
+        <div class="ct"><span class="ct-ic">📋</span>결재 · 문서 트래커</div>
+        <div class="ca">전체 보기</div>
+      </div>
+      <div class="cb">
+        <div class="ap-grid">
+          <div class="ap-cell">
+            <div class="ap-val" style="color:var(--warn)">5</div>
+            <div class="ap-lbl">결재 대기</div>
+          </div>
+          <div class="ap-cell">
+            <div class="ap-val" style="color:var(--acc)">3</div>
+            <div class="ap-lbl">검토 중</div>
+          </div>
+          <div class="ap-cell">
+            <div class="ap-val" style="color:var(--err)">1</div>
+            <div class="ap-lbl">반려</div>
+          </div>
+          <div class="ap-cell">
+            <div class="ap-val" style="color:var(--ok)">28</div>
+            <div class="ap-lbl">이달 완료</div>
+          </div>
+        </div>
+        <div class="ap-list">
+          <div class="ap-item">
+            <div class="ap-dot" style="background:var(--err)"></div>
+            <div class="ap-title">클라이언트 A 최종 PT 기안서</div>
+            <div class="ap-stat s-wait">결재대기</div>
+          </div>
+          <div class="ap-item">
+            <div class="ap-dot" style="background:var(--acc)"></div>
+            <div class="ap-title">5월 광고 집행 비용 정산 요청</div>
+            <div class="ap-stat s-rev">검토중</div>
+          </div>
+          <div class="ap-item">
+            <div class="ap-dot" style="background:var(--warn)"></div>
+            <div class="ap-title">팝업스토어 협력업체 계약서</div>
+            <div class="ap-stat s-wait">결재대기</div>
+          </div>
+          <div class="ap-item">
+            <div class="ap-dot" style="background:var(--ok)"></div>
+            <div class="ap-title">4월 SNS 운영 성과 보고서</div>
+            <div class="ap-stat s-ok">승인완료</div>
+          </div>
+          <div class="ap-item">
+            <div class="ap-dot" style="background:var(--err)"></div>
+            <div class="ap-title">하반기 예산안 (1차)</div>
+            <div class="ap-stat s-ret">반려</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 프로젝트 마일스톤 -->
+    <div class="card">
+      <div class="ch">
+        <div class="ct"><span class="ct-ic">🏃</span>프로젝트 마일스톤 (5월)</div>
+        <div class="ca">전체 보기</div>
+      </div>
+      <div class="cb">
+        <div class="ms-list">
+          <div class="ms-item">
+            <div class="ms-top">
+              <div class="ms-name"><span class="ms-tag" style="background:rgba(108,99,255,.2);color:#a89cff">캠페인</span>여름 시즌 디지털 광고</div>
+              <div class="ms-pct">72%</div>
+            </div>
+            <div class="ms-bar"><div class="ms-fill" style="width:72%;background:linear-gradient(90deg,#6c63ff,#a89cff)"></div></div>
+            <div class="ms-meta"><div class="ms-due">담당: 정미래</div><div class="ms-due">마감 5/28</div></div>
+          </div>
+          <div class="ms-item">
+            <div class="ms-top">
+              <div class="ms-name"><span class="ms-tag" style="background:rgba(255,107,157,.2);color:#ff8fb8">브랜드</span>클라이언트 A 브랜드북</div>
+              <div class="ms-pct">45%</div>
+            </div>
+            <div class="ms-bar"><div class="ms-fill" style="width:45%;background:linear-gradient(90deg,#ff6b9d,#ff8fb8)"></div></div>
+            <div class="ms-meta"><div class="ms-due">담당: 이예린</div><div class="ms-due over">마감 5/19 ⚠️</div></div>
+          </div>
+          <div class="ms-item">
+            <div class="ms-top">
+              <div class="ms-name"><span class="ms-tag" style="background:rgba(255,169,77,.2);color:#ffa94d">이벤트</span>팝업스토어 홍보 전략</div>
+              <div class="ms-pct">60%</div>
+            </div>
+            <div class="ms-bar"><div class="ms-fill" style="width:60%;background:linear-gradient(90deg,#e07b00,#ffa94d)"></div></div>
+            <div class="ms-meta"><div class="ms-due">담당: 최지호</div><div class="ms-due">마감 5/30</div></div>
+          </div>
+          <div class="ms-item">
+            <div class="ms-top">
+              <div class="ms-name"><span class="ms-tag" style="background:rgba(79,195,247,.2);color:#4fc3f7">보고</span>4월 성과 보고서</div>
+              <div class="ms-pct">88%</div>
+            </div>
+            <div class="ms-bar"><div class="ms-fill" style="width:88%;background:linear-gradient(90deg,#0288d1,#4fc3f7)"></div></div>
+            <div class="ms-meta"><div class="ms-due">담당: 한소영</div><div class="ms-due">마감 5/21</div></div>
+          </div>
+          <div class="ms-item">
+            <div class="ms-top">
+              <div class="ms-name"><span class="ms-tag" style="background:rgba(0,212,170,.2);color:#00d4aa">SNS</span>인스타 릴스 콘텐츠</div>
+              <div class="ms-pct">33%</div>
+            </div>
+            <div class="ms-bar"><div class="ms-fill" style="width:33%;background:linear-gradient(90deg,#00b894,#00d4aa)"></div></div>
+            <div class="ms-meta"><div class="ms-due">담당: 박지훈</div><div class="ms-due">마감 5/25</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 오늘의 회의실 현황 -->
+    <div class="card">
+      <div class="ch">
+        <div class="ct"><span class="ct-ic">🏢</span>오늘의 회의실 현황</div>
+        <div style="font-size:.68rem;color:var(--tx2)">09:00 — 18:00</div>
+      </div>
+      <div class="cb">
+        <div style="display:flex;gap:8px;margin-bottom:8px;font-size:.62rem;color:var(--tx2)">
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:2px;background:rgba(108,99,255,.7);display:inline-block"></span>예약됨</span>
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:2px;background:rgba(224,92,107,.7);display:inline-block"></span>사용중</span>
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:2px;background:var(--bg4);display:inline-block"></span>비어있음</span>
+        </div>
+        <div class="room-list">
+          <div class="room-row">
+            <div class="room-name">1 대회의실</div>
+            <div class="room-bar-wrap">
+              <div class="room-seg free" style="flex:2"></div>
+              <div class="room-seg booked" style="flex:3">기획팀 MT</div>
+              <div class="room-seg free" style="flex:4"></div>
+            </div>
+            <div class="room-stat ok">가능</div>
+          </div>
+          <div class="room-row">
+            <div class="room-name">2 소회의실</div>
+            <div class="room-bar-wrap">
+              <div class="room-seg booked" style="flex:2">주간MTG</div>
+              <div class="room-seg busy" style="flex:2">사용중</div>
+              <div class="room-seg free" style="flex:5"></div>
+            </div>
+            <div class="room-stat busy">사용중</div>
+          </div>
+          <div class="room-row">
+            <div class="room-name">3 크리에이티브룸</div>
+            <div class="room-bar-wrap">
+              <div class="room-seg free" style="flex:4"></div>
+              <div class="room-seg booked" style="flex:2">PT연습</div>
+              <div class="room-seg free" style="flex:3"></div>
+            </div>
+            <div class="room-stat ok">가능</div>
+          </div>
+          <div class="room-row">
+            <div class="room-name">4 화상회의실</div>
+            <div class="room-bar-wrap">
+              <div class="room-seg booked" style="flex:3">클라이언트</div>
+              <div class="room-seg free" style="flex:6"></div>
+            </div>
+            <div class="room-stat ok">가능</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 월별 완료 차트 -->
+    <div class="card">
+      <div class="ch">
+        <div class="ct"><span class="ct-ic">📈</span>월별 프로젝트 완료 현황</div>
+        <div class="ca">상세 보기</div>
+      </div>
+      <div class="cb">
+        <div class="chart-wrap"><canvas id="barChart"></canvas></div>
+      </div>
+    </div>
+
+  </div><!-- /2열 -->
+
+  <!-- ══ 3열: 캘린더 + 출장 + 공지 + 피드 + 도넛 ══ -->
+  <div style="display:flex;flex-direction:column;gap:14px">
+
+    <!-- 미니 캘린더 -->
+    <div class="card">
+      <div class="ch">
+        <div class="ct"><span class="ct-ic">📅</span>2026년 5월</div>
+      </div>
+      <div class="cb">
+        <div class="cal-head">
+          <div class="cal-title">May 2026</div>
+          <div class="cal-nav">
+            <div class="cal-btn">‹</div>
+            <div class="cal-btn">›</div>
+          </div>
+        </div>
+        <div class="cal-grid">
+          <div class="cal-dow">일</div><div class="cal-dow">월</div><div class="cal-dow">화</div>
+          <div class="cal-dow">수</div><div class="cal-dow">목</div><div class="cal-dow">금</div><div class="cal-dow">토</div>
+          <!-- 1일=금 -->
+          <div class="cal-day other sun"></div><div class="cal-day other"></div><div class="cal-day other"></div>
+          <div class="cal-day other"></div><div class="cal-day other"></div>
+          <div class="cal-day has-ev" style="color:var(--tx2)">1</div>
+          <div class="cal-day sat">2</div>
+          <div class="cal-day sun">3</div>
+          <div class="cal-day has-ev">4</div>
+          <div class="cal-day">5</div>
+          <div class="cal-day has-ev">6</div>
+          <div class="cal-day">7</div>
+          <div class="cal-day has-ev">8</div>
+          <div class="cal-day sat">9</div>
+          <div class="cal-day sun">10</div>
+          <div class="cal-day">11</div>
+          <div class="cal-day has-ev">12</div>
+          <div class="cal-day">13</div>
+          <div class="cal-day has-ev">14</div>
+          <div class="cal-day">15</div>
+          <div class="cal-day sat">16</div>
+          <div class="cal-day sun">17</div>
+          <div class="cal-day">18</div>
+          <div class="cal-day today has-ev">19</div>
+          <div class="cal-day has-ev">20</div>
+          <div class="cal-day has-ev">21</div>
+          <div class="cal-day has-ev">22</div>
+          <div class="cal-day sat">23</div>
+          <div class="cal-day sun">24</div>
+          <div class="cal-day has-ev">25</div>
+          <div class="cal-day has-ev">26</div>
+          <div class="cal-day">27</div>
+          <div class="cal-day has-ev">28</div>
+          <div class="cal-day">29</div>
+          <div class="cal-day sat">30</div>
+          <div class="cal-day sun">31</div>
+        </div>
+        <div class="cal-ev-list">
+          <div class="cal-ev"><div class="cal-ev-dot" style="background:var(--err)"></div><div class="cal-ev-txt">클라이언트 A 브랜드북 납기</div><div class="cal-ev-dt">5/19</div></div>
+          <div class="cal-ev"><div class="cal-ev-dot" style="background:var(--acc)"></div><div class="cal-ev-txt">4월 성과 보고서 마감</div><div class="cal-ev-dt">5/21</div></div>
+          <div class="cal-ev"><div class="cal-ev-dot" style="background:var(--acc2)"></div><div class="cal-ev-txt">클라이언트 A 최종 PT</div><div class="cal-ev-dt">5/23</div></div>
+          <div class="cal-ev"><div class="cal-ev-dot" style="background:var(--acc3)"></div><div class="cal-ev-txt">릴스 콘텐츠 업로드</div><div class="cal-ev-dt">5/25</div></div>
+          <div class="cal-ev"><div class="cal-ev-dot" style="background:var(--acc4)"></div><div class="cal-ev-txt">여름 캠페인 기획안 마감</div><div class="cal-ev-dt">5/28</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 외부 출장/미팅 현황 -->
+    <div class="card">
+      <div class="ch">
+        <div class="ct"><span class="ct-ic">✈️</span>외부 출장 · 미팅 현황</div>
+        <div class="ca">일정 추가</div>
+      </div>
+      <div class="cb">
+        <div class="trip-grid">
+          <div class="trip-cell">
+            <div class="trip-ic">📞</div>
+            <div class="trip-val" style="color:var(--acc)">4</div>
+            <div class="trip-lbl">전화 미팅</div>
+          </div>
+          <div class="trip-cell">
+            <div class="trip-ic">🤝</div>
+            <div class="trip-val" style="color:var(--acc3)">2</div>
+            <div class="trip-lbl">대면 미팅</div>
+          </div>
+          <div class="trip-cell">
+            <div class="trip-ic">✈️</div>
+            <div class="trip-val" style="color:var(--acc4)">1</div>
+            <div class="trip-lbl">출장</div>
+          </div>
+        </div>
+        <div class="trip-list">
+          <div class="trip-row"><span style="color:var(--ok)">●</span><strong>최지호</strong> — 협력사 A 방문 (여의도)</div>
+          <div class="trip-row"><span style="color:var(--warn)">●</span><strong>김수민</strong> — 클라이언트 B 전화 미팅 14:00</div>
+          <div class="trip-row"><span style="color:var(--acc)">●</span><strong>정미래</strong> — 광고 대행사 화상 미팅 16:00</div>
+          <div class="trip-row"><span style="color:var(--tx3)">●</span><strong>오세준</strong> — 내일 부산 출장 예정</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 공지 & 알림 -->
+    <div class="card">
+      <div class="ch">
+        <div class="ct"><span class="ct-ic">📢</span>공지 · 알림</div>
+      </div>
+      <div class="cb" style="display:flex;flex-direction:column;gap:7px">
+        <div style="display:flex;gap:9px;align-items:flex-start;padding:9px 10px;background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--err);border-radius:var(--rs)">
+          <div>🔥</div>
+          <div><div style="font-size:.78rem;font-weight:600;margin-bottom:2px">클라이언트 A PT 확정 — 5/23 10:00</div>
+          <div style="font-size:.68rem;color:var(--tx2)">여의도 본사 대회의실. 팀 전원 참석 필수.</div></div>
+        </div>
+        <div style="display:flex;gap:9px;align-items:flex-start;padding:9px 10px;background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--warn);border-radius:var(--rs)">
+          <div>⚠️</div>
+          <div><div style="font-size:.78rem;font-weight:600;margin-bottom:2px">브랜드북 납기 D-0 경고</div>
+          <div style="font-size:.68rem;color:var(--tx2)">오늘 마감. 이예린 담당자 즉시 확인.</div></div>
+        </div>
+        <div style="display:flex;gap:9px;align-items:flex-start;padding:9px 10px;background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--ok);border-radius:var(--rs)">
+          <div>✅</div>
+          <div><div style="font-size:.78rem;font-weight:600;margin-bottom:2px">5월 뉴스레터 발행 완료</div>
+          <div style="font-size:.68rem;color:var(--tx2)">오픈율 34.2% — 전월 대비 +5.8%.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 최근 활동 피드 -->
+    <div class="card">
+      <div class="ch">
+        <div class="ct"><span class="ct-ic">🔔</span>최근 활동</div>
+      </div>
+      <div class="cb">
+        <div class="feed">
+          <div class="fi"><div class="fav bp2">김</div><div class="ftx"><strong>김수민</strong>이 '여름 광고 기획' 검토 완료<div class="ftm">방금 전</div></div></div>
+          <div class="fi"><div class="fav bp3">박</div><div class="ftx"><strong>박지훈</strong>이 릴스 콘티 파일 업로드<div class="ftm">12분 전</div></div></div>
+          <div class="fi"><div class="fav bp7">강</div><div class="ftx"><strong>강민준</strong>이 브랜드북 납기 5/19→5/22 변경 요청<div class="ftm">35분 전</div></div></div>
+          <div class="fi"><div class="fav bp6" style="background:#00acc1">한</div><div class="ftx"><strong>한소영</strong>이 4월 성과 보고서 초안 공유<div class="ftm">1시간 전</div></div></div>
+          <div class="fi"><div class="fav bp4">정</div><div class="ftx"><strong>정미래</strong>가 '팝업스토어 전략'을 진행중으로 이동<div class="ftm">2시간 전</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 업무 유형 도넛 -->
+    <div class="card">
+      <div class="ch">
+        <div class="ct"><span class="ct-ic">🎯</span>업무 유형 분포</div>
+      </div>
+      <div class="cb">
+        <div style="display:flex;align-items:center;gap:14px">
+          <canvas id="doughnutChart" style="max-width:120px;max-height:120px"></canvas>
+          <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+            <div style="display:flex;align-items:center;gap:7px;font-size:.74rem"><div style="width:9px;height:9px;border-radius:2px;background:#6c63ff;flex-shrink:0"></div><span style="flex:1;color:var(--tx2)">캠페인 기획</span><strong>35%</strong></div>
+            <div style="display:flex;align-items:center;gap:7px;font-size:.74rem"><div style="width:9px;height:9px;border-radius:2px;background:#ff6b9d;flex-shrink:0"></div><span style="flex:1;color:var(--tx2)">SNS 운영</span><strong>25%</strong></div>
+            <div style="display:flex;align-items:center;gap:7px;font-size:.74rem"><div style="width:9px;height:9px;border-radius:2px;background:#00d4aa;flex-shrink:0"></div><span style="flex:1;color:var(--tx2)">브랜딩</span><strong>20%</strong></div>
+            <div style="display:flex;align-items:center;gap:7px;font-size:.74rem"><div style="width:9px;height:9px;border-radius:2px;background:#ffa94d;flex-shrink:0"></div><span style="flex:1;color:var(--tx2)">이벤트</span><strong>12%</strong></div>
+            <div style="display:flex;align-items:center;gap:7px;font-size:.74rem"><div style="width:9px;height:9px;border-radius:2px;background:#4fc3f7;flex-shrink:0"></div><span style="flex:1;color:var(--tx2)">콘텐츠</span><strong>8%</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /3열 -->
+
+</div><!-- /content -->
+
+<!-- ════ 푸터 ════ -->
+<footer class="footer">
+  <div class="footer-left">
+    <span class="footer-school">🎓 한국외국어대학교</span>
+    <span class="footer-divider">|</span>
+    <span>차이나데이터큐레이션전공</span>
+    <span class="footer-divider">|</span>
+    <span>202404764</span>
+    <span class="footer-divider">|</span>
+    <span style="color:var(--tx);font-weight:600">김수민</span>
+  </div>
+  <div class="footer-right">
+    <span>업무 종합 대시보드 v2.0</span>
+    <span>·</span>
+    <span>NOVA Creative</span>
+    <span>·</span>
+    <span id="footerDate"></span>
+  </div>
+</footer>
+</main>
+
+<!-- ════ 모달 ════ -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-hd">
+      <div>
+        <div class="modal-title" id="modalTitle">상세 정보</div>
+        <div class="modal-subtitle" id="modalSubtitle"></div>
+      </div>
+      <div class="modal-close" onclick="closeModalDirect()">✕</div>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer" id="modalFooter">
+      <div class="mbtn mbtn-sec" onclick="closeModalDirect()">닫기</div>
+      <div class="mbtn mbtn-pri" id="modalAction">확인</div>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+</style>
+
+<script>
+/* ── 날짜/시간 ── */
+function upDate(){
+  const now=new Date();
+  const dw=['일','월','화','수','목','금','토'];
+  const s=`${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} (${dw[now.getDay()]}) ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  document.getElementById('liveDate').textContent=s;
+  const bd=document.getElementById('briefDate');
+  if(bd)bd.textContent=`${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} 업데이트`;
+}
+upDate();setInterval(upDate,30000);
+
+/* ── 전체화면 ── */
+function toggleFS(){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen();}
+
+/* ── 할 일 데이터 ── */
+const todos=[
+  {id:1,text:'클라이언트 A 보고서 초안 검토',cat:'urgent',prio:'hi',who:'김수민',done:false},
+  {id:2,text:'브랜드북 납기 이예린 확인 연락',cat:'urgent',prio:'hi',who:'김수민',done:false},
+  {id:3,text:'인스타 릴스 콘티 승인 요청',cat:'report',prio:'hi',who:'정미래',done:false},
+  {id:4,text:'주간 팀 미팅 자료 준비',cat:'meeting',prio:'md',who:'김수민',done:true},
+  {id:5,text:'팝업스토어 협력사 미팅 일정 조율',cat:'general',prio:'md',who:'최지호',done:false},
+  {id:6,text:'SNS 5월 KPI 데이터 수집',cat:'report',prio:'lo',who:'이예린',done:true},
+  {id:7,text:'하반기 예산안 1차 검토',cat:'general',prio:'lo',who:'김수민',done:false},
+];
+let activeCat='all';
+
+function renderTodo(){
+  const body=document.getElementById('todoBody');
+  const filtered=activeCat==='all'?todos:todos.filter(t=>t.cat===activeCat);
+  body.innerHTML=filtered.map(t=>`
+    <div class="ti ${t.done?'done':''}" onclick="toggleTodo(${t.id})">
+      <div class="tck ${t.done?'on':''}">✓</div>
+      <div class="ti-txt">${t.text}</div>
+      <div class="ti-meta">
+        <span class="tbdg ${t.prio==='hi'?'b-hi':t.prio==='md'?'b-md':'b-lo'}">${t.prio==='hi'?'긴급':t.prio==='md'?'보통':'여유'}</span>
+        <span class="ti-who">${t.who}</span>
+      </div>
+    </div>`).join('');
+}
+
+function toggleTodo(id){
+  const t=todos.find(x=>x.id===id);
+  if(t)t.done=!t.done;
+  renderTodo();
+}
+
+function filterTodo(cat,el){
+  activeCat=cat;
+  document.querySelectorAll('.ttab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+  renderTodo();
+}
+
+function addTodo(){
+  const txt=prompt('새 할 일을 입력하세요:');
+  if(!txt||!txt.trim())return;
+  todos.push({id:Date.now(),text:txt.trim(),cat:'general',prio:'md',who:'김수민',done:false});
+  renderTodo();
+}
+renderTodo();
+
+/* ── 푸터 날짜 ── */
+const fd=document.getElementById('footerDate');
+if(fd){const n=new Date();fd.textContent=`${n.getFullYear()}.${String(n.getMonth()+1).padStart(2,'0')}.${String(n.getDate()).padStart(2,'0')}`;}
+
+/* ── 사이드바 활성 ── */
+document.querySelectorAll('.ni').forEach(n=>{
+  n.addEventListener('click',function(){
+    document.querySelectorAll('.ni').forEach(x=>x.classList.remove('on'));
+    this.classList.add('on');
+  });
+});
+
+/* ══════════════════════════════
+   모달 시스템
+══════════════════════════════ */
+function openModal(title,subtitle,bodyHTML,actionLabel,actionFn){
+  document.getElementById('modalTitle').innerHTML=title;
+  document.getElementById('modalSubtitle').textContent=subtitle||'';
+  document.getElementById('modalBody').innerHTML=bodyHTML;
+  const act=document.getElementById('modalAction');
+  act.textContent=actionLabel||'확인';
+  act.onclick=actionFn||closeModalDirect;
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeModalDirect(){
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+function closeModal(e){if(e.target===document.getElementById('modalOverlay'))closeModalDirect();}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModalDirect();});
+
+/* ── KPI 카드 클릭 ── */
+const kpiCards=document.querySelectorAll('.kc');
+const kpiData=[
+  {title:'📁 진행 프로젝트 상세',sub:'현재 진행 중인 프로젝트 8건',body:`
+    <div class="modal-section">
+      <div class="modal-section-title">프로젝트별 현황</div>
+      ${[
+        ['여름 시즌 디지털 광고','캠페인','72%','#6c63ff','정미래','5/28'],
+        ['클라이언트 A 브랜드북','브랜드','45%','#ff6b9d','이예린','5/19 ⚠️'],
+        ['팝업스토어 홍보 전략','이벤트','60%','#ffa94d','최지호','5/30'],
+        ['4월 성과 보고서','보고','88%','#4fc3f7','한소영','5/21'],
+        ['인스타 릴스 제작','SNS','33%','#00d4aa','박지훈','5/25'],
+        ['유튜브 채널 전략','SNS','50%','#a89cff','이예린','5/26'],
+        ['BI 가이드라인 수립','브랜드','10%','#ff8fb8','강민준','6/10'],
+        ['하반기 콘텐츠 캘린더','콘텐츠','5%','#4fc3f7','박지훈','6/20'],
+      ].map(([nm,tag,pct,col,who,due])=>`
+        <div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+            <span style="font-size:.8rem;font-weight:600">${nm}</span>
+            <span style="font-size:.72rem;color:var(--tx2)">${pct} · ${due}</span>
+          </div>
+          <div class="modal-progress"><div class="modal-progress-fill" style="width:${pct};background:${col}"></div></div>
+          <div style="font-size:.65rem;color:var(--tx2);margin-top:2px">담당: ${who}</div>
+        </div>`).join('')}
+    </div>`,action:'프로젝트 추가'},
+  {title:'⏳ 대기 중 업무',sub:'검토·승인 대기 중인 항목 5건',body:`
+    <div class="modal-section">
+      <div class="modal-section-title">대기 목록</div>
+      ${[
+        ['클라이언트 A 최종 PT 기안서','결재대기','var(--warn)','김수민 → 대표이사'],
+        ['5월 광고 집행 비용 정산','검토중','var(--acc)','김수민 → 재무팀'],
+        ['팝업스토어 협력업체 계약서','결재대기','var(--warn)','최지호 → 김수민'],
+        ['하반기 예산안 (2차 수정)','검토중','var(--acc)','김수민 → CFO'],
+        ['신규 디자인 툴 도입 요청서','대기','var(--tx2)','강민준 → IT팀'],
+      ].map(([nm,stat,col,flow])=>`
+        <div class="modal-row">
+          <div><div class="modal-row-label">${nm}</div><div style="font-size:.65rem;color:var(--tx3);margin-top:2px">${flow}</div></div>
+          <span class="modal-tag" style="background:rgba(0,0,0,.2);color:${col}">${stat}</span>
+        </div>`).join('')}
+    </div>`,action:'결재 현황 보기'},
+  {title:'🔥 D-1 마감 항목',sub:'내일까지 완료 필요한 긴급 항목 3건',body:`
+    <div class="modal-section">
+      <div class="modal-section-title">긴급 마감 목록</div>
+      <div style="background:rgba(224,92,107,.08);border:1px solid rgba(224,92,107,.3);border-radius:var(--rs);padding:12px;margin-bottom:12px;font-size:.78rem;color:#ff8f9a">
+        ⚠️ 아래 항목들은 <strong>오늘 중 완료</strong>하거나 담당자에게 확인이 필요합니다.
+      </div>
+      ${[
+        ['클라이언트 A 브랜드북 납기','이예린','오늘(5/19) 18:00까지','45% 진행'],
+        ['4월 성과 보고서 제출','한소영','내일(5/20) 09:00까지','88% 진행'],
+        ['PT 발표 자료 초안','정미래','내일(5/20) 17:00까지','60% 진행'],
+      ].map(([nm,who,due,pct])=>`
+        <div class="modal-row">
+          <div>
+            <div style="font-size:.8rem;font-weight:600;color:var(--err)">${nm}</div>
+            <div style="font-size:.65rem;color:var(--tx2);margin-top:2px">담당: ${who} · ${pct}</div>
+          </div>
+          <div style="font-size:.72rem;color:var(--warn);font-weight:600;text-align:right">${due}</div>
+        </div>`).join('')}
+    </div>`,action:'알림 보내기'},
+  {title:'✅ 주간 완료 현황',sub:'이번 주 완료된 업무 18건',body:`
+    <div class="modal-section">
+      <div class="modal-section-title">일별 완료 현황</div>
+      <div class="modal-stat-grid" style="margin-bottom:12px">
+        ${[['월',3],['화',5],['수',4],['목',4],['금',2]].map(([d,n])=>`
+          <div class="modal-stat"><div class="modal-stat-val" style="color:var(--ok)">${n}</div><div class="modal-stat-lbl">${d}요일</div></div>`).join('')}
+        <div class="modal-stat"><div class="modal-stat-val" style="color:var(--acc)">18</div><div class="modal-stat-lbl">주간합계</div></div>
+      </div>
+      <div class="modal-section-title">주요 완료 항목</div>
+      ${['5월 뉴스레터 발행','어버이날 SNS 이벤트','로고 리터칭 납품','클라이언트 B 제안서','주간 보고서 제출','SNS KPI 데이터 수집'].map(t=>`
+        <div class="modal-row"><span style="color:var(--ok)">✓</span><span style="flex:1;padding-left:8px;font-size:.8rem">${t}</span></div>`).join('')}
+    </div>`,action:'보고서 생성'},
+  {title:'👥 팀원 온라인 현황',sub:'현재 온라인 6명 / 전체 9명',body:`
+    <div class="modal-stat-grid" style="margin-bottom:14px">
+      <div class="modal-stat"><div class="modal-stat-val" style="color:var(--ok)">6</div><div class="modal-stat-lbl">온라인</div></div>
+      <div class="modal-stat"><div class="modal-stat-val" style="color:var(--warn)">2</div><div class="modal-stat-lbl">자리비움</div></div>
+      <div class="modal-stat"><div class="modal-stat-val" style="color:var(--tx2)">1</div><div class="modal-stat-lbl">오프라인</div></div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">상태별 목록</div>
+      ${[['🟢','김수민','온라인','기획팀장'],['🟢','이예린','온라인(집중)','브랜드'],['🟢','박지훈','온라인','콘텐츠'],['🟢','정미래','온라인','기획'],['🟡','최지호','외근중','AE'],['🟡','한소영','회의중','데이터'],['🔴','강민준','집중모드','디자인'],['🟢','오세준','오프라인','카피라이터'],['🟢','김도현','온라인','디자인']].map(([ic,nm,st,role])=>`
+        <div class="modal-row"><span>${ic}</span><span style="flex:1;padding-left:8px;font-size:.8rem;font-weight:600">${nm}</span><span style="font-size:.72rem;color:var(--tx2)">${role}</span><span style="font-size:.72rem;color:var(--tx2);margin-left:8px">${st}</span></div>`).join('')}
+    </div>`,action:'메시지 보내기'},
+  {title:'🎯 이달 캠페인 현황',sub:'5월 진행 캠페인 12건 (목표: 13건)',body:`
+    <div class="modal-stat-grid" style="margin-bottom:14px">
+      <div class="modal-stat"><div class="modal-stat-val" style="color:var(--acc)">12</div><div class="modal-stat-lbl">진행중</div></div>
+      <div class="modal-stat"><div class="modal-stat-val" style="color:var(--ok)">5</div><div class="modal-stat-lbl">완료</div></div>
+      <div class="modal-stat"><div class="modal-stat-val" style="color:var(--err)">1</div><div class="modal-stat-lbl">지연</div></div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">채널별 분포</div>
+      ${[['인스타그램','4건','rgba(108,99,255,.7)'],['유튜브','2건','rgba(255,107,157,.7)'],['네이버 광고','3건','rgba(0,212,170,.7)'],['카카오','2건','rgba(255,169,77,.7)'],['기타 SNS','1건','rgba(79,195,247,.7)']].map(([ch,cnt,col])=>`
+        <div class="modal-row"><span style="font-size:.8rem">${ch}</span><span style="font-weight:600;color:${col}">${cnt}</span></div>`).join('')}
+    </div>`,action:'캠페인 추가'},
+];
+kpiCards.forEach((card,i)=>{
+  card.style.cursor='pointer';
+  card.addEventListener('click',()=>{
+    const d=kpiData[i];
+    if(d)openModal(d.title,d.sub,d.body,d.action);
+  });
+});
+
+/* ── 마일스톤 클릭 ── */
+const msItems=document.querySelectorAll('.ms-item');
+const msDetail=[
+  {name:'여름 시즌 디지털 광고',tag:'캠페인',pct:'72%',col:'#6c63ff',who:'정미래',due:'2026.05.28',budget:'1,200만원',client:'내부',tasks:['기획안 작성 완료','광고 소재 제작 중','매체사 협의 진행중','최종 검수 예정'],desc:'여름 시즌 소비자 타겟 디지털 광고. 인스타/유튜브/네이버 통합 집행 예정.'},
+  {name:'클라이언트 A 브랜드북',tag:'브랜드',pct:'45%',col:'#ff6b9d',who:'이예린',due:'2026.05.19',budget:'800만원',client:'클라이언트 A',tasks:['로고 시스템 완료','컬러 팔레트 작업중','타이포그래피 미정','최종 PDF 제작 예정'],desc:'클라이언트 A 전면 BI 리뉴얼 프로젝트. 납기 오늘까지.'},
+  {name:'팝업스토어 홍보 전략',tag:'이벤트',pct:'60%',col:'#ffa94d',who:'최지호',due:'2026.05.30',budget:'500만원',client:'클라이언트 C',tasks:['장소 섭외 완료','홍보물 기획중','SNS 이벤트 연계 검토','현장 운영 계획 예정'],desc:'홍대 팝업스토어 오픈 연계 홍보 전략 수립.'},
+  {name:'4월 성과 보고서',tag:'보고',pct:'88%',col:'#4fc3f7',who:'한소영',due:'2026.05.21',budget:'-',client:'내부',tasks:['데이터 수집 완료','분석 초안 완료','시각화 작업중','최종 검토 예정'],desc:'4월 전체 SNS·광고 성과 종합 분석 보고서.'},
+  {name:'인스타 릴스 콘텐츠',tag:'SNS',pct:'33%',col:'#00d4aa',who:'박지훈',due:'2026.05.25',budget:'200만원',client:'내부',tasks:['기획안 작성중','촬영 일정 미정','편집 예정','업로드 예정'],desc:'5월 인스타그램 릴스 콘텐츠 4편 제작.'},
+];
+msItems.forEach((item,i)=>{
+  item.style.cursor='pointer';
+  item.addEventListener('click',()=>{
+    const d=msDetail[i];if(!d)return;
+    openModal(`${d.tag === '캠페인'?'🎯':d.tag==='브랜드'?'🎨':d.tag==='이벤트'?'🎪':d.tag==='보고'?'📊':'📱'} ${d.name}`,`담당: ${d.who} · 마감: ${d.due}`,`
+      <div class="modal-section">
+        <div class="modal-section-title">프로젝트 개요</div>
+        <div class="modal-row"><span class="modal-row-label">카테고리</span><span class="modal-row-val"><span class="modal-tag" style="background:rgba(108,99,255,.2);color:#a89cff">${d.tag}</span></span></div>
+        <div class="modal-row"><span class="modal-row-label">클라이언트</span><span class="modal-row-val">${d.client}</span></div>
+        <div class="modal-row"><span class="modal-row-label">예산</span><span class="modal-row-val">${d.budget}</span></div>
+        <div class="modal-row"><span class="modal-row-label">담당자</span><span class="modal-row-val">${d.who}</span></div>
+        <div class="modal-row"><span class="modal-row-label">마감일</span><span class="modal-row-val" style="color:${d.pct<='45%'?'var(--err)':'var(--tx)'}">${d.due}</span></div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">진행률</div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:.8rem">${d.pct} 완료</span></div>
+        <div class="modal-progress" style="height:10px"><div class="modal-progress-fill" style="width:${d.pct};background:${d.col}"></div></div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">작업 체크리스트</div>
+        ${d.tasks.map((t,i2)=>`<div class="modal-row"><span style="color:${i2<d.tasks.length-2?'var(--ok)':'var(--warn)'}">${i2<d.tasks.length-2?'✓':'◐'}</span><span style="padding-left:8px;font-size:.8rem">${t}</span></div>`).join('')}
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">프로젝트 설명</div>
+        <div style="font-size:.78rem;color:var(--tx2);line-height:1.6">${d.desc}</div>
+      </div>`,
+    '담당자에게 알림');
+  });
+});
+
+/* ── 팀원 클릭 ── */
+const tmRows=document.querySelectorAll('.tm-row');
+const memberData=[
+  {name:'김수민',role:'기획팀장',status:'🟢 온라인',load:82,email:'ksm@nova.co.kr',tasks:['클라이언트 A 보고서 검토','하반기 예산안 검토','PT 자료 감수'],done:12,week:5,projects:3},
+  {name:'이예린',role:'브랜드 디자이너',status:'🟠 집중모드',load:95,email:'lyr@nova.co.kr',tasks:['브랜드북 최종 작업','BI 가이드라인 수립'],done:8,week:3,projects:2},
+  {name:'박지훈',role:'콘텐츠 크리에이터',status:'🟢 온라인',load:68,email:'pjh@nova.co.kr',tasks:['인스타 릴스 콘티','하반기 콘텐츠 캘린더'],done:10,week:4,projects:2},
+  {name:'정미래',role:'기획자',status:'🟢 온라인',load:75,email:'jmr@nova.co.kr',tasks:['여름 캠페인 기획안','팝업스토어 전략'],done:9,week:4,projects:2},
+  {name:'최지호',role:'AE (외근중)',status:'🟡 자리비움',load:55,email:'cjh@nova.co.kr',tasks:['협력사 미팅','계약서 결재 요청'],done:7,week:2,projects:1},
+  {name:'강민준',role:'그래픽 디자이너',status:'🔴 집중모드',load:88,email:'kmj@nova.co.kr',tasks:['팝업스토어 비주얼','PT 슬라이드 디자인'],done:6,week:3,projects:2},
+  {name:'오세준',role:'카피라이터',status:'⚫ 오프라인',load:40,email:'osj@nova.co.kr',tasks:['내일 부산 출장'],done:11,week:0,projects:1},
+];
+tmRows.forEach((row,i)=>{
+  row.style.cursor='pointer';
+  row.addEventListener('click',()=>{
+    const d=memberData[i];if(!d)return;
+    openModal(`👤 ${d.name}`,`${d.role} · ${d.status}`,`
+      <div class="modal-stat-grid" style="margin-bottom:14px">
+        <div class="modal-stat"><div class="modal-stat-val" style="color:var(--acc)">${d.done}</div><div class="modal-stat-lbl">이달 완료</div></div>
+        <div class="modal-stat"><div class="modal-stat-val" style="color:var(--ok)">${d.week}</div><div class="modal-stat-lbl">이번주 완료</div></div>
+        <div class="modal-stat"><div class="modal-stat-val" style="color:var(--acc4)">${d.projects}</div><div class="modal-stat-lbl">담당 프로젝트</div></div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">기본 정보</div>
+        <div class="modal-row"><span class="modal-row-label">이메일</span><span class="modal-row-val" style="color:var(--acc5)">${d.email}</span></div>
+        <div class="modal-row"><span class="modal-row-label">직무</span><span class="modal-row-val">${d.role}</span></div>
+        <div class="modal-row"><span class="modal-row-label">현재 상태</span><span class="modal-row-val">${d.status}</span></div>
+        <div class="modal-row"><span class="modal-row-label">업무 부하</span>
+          <span class="modal-row-val" style="color:${d.load>=90?'var(--err)':d.load>=75?'var(--warn)':'var(--ok)'}">${d.load}%</span>
+        </div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">진행 중인 업무</div>
+        ${d.tasks.map(t=>`<div class="modal-row"><span style="color:var(--acc)">▶</span><span style="padding-left:8px;font-size:.8rem">${t}</span></div>`).join('')}
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">업무 부하</div>
+        <div class="modal-progress" style="height:10px">
+          <div class="modal-progress-fill" style="width:${d.load}%;background:${d.load>=90?'var(--err)':d.load>=75?'var(--warn)':'var(--ok)'}"></div>
+        </div>
+        <div style="font-size:.68rem;color:var(--tx2);margin-top:4px">${d.load>=90?'⚠️ 과부하 상태 — 업무 조정 필요':d.load>=75?'업무량이 많습니다':'적정 업무 수준'}</div>
+      </div>`,
+    '메시지 보내기',()=>{alert(`${d.name}님에게 메시지를 보냅니다.`);closeModalDirect();});
+  });
+});
+
+/* ── 결재 아이템 클릭 ── */
+const apItems=document.querySelectorAll('.ap-item');
+const apDetail=[
+  {title:'클라이언트 A 최종 PT 기안서',from:'김수민',to:'대표이사',date:'2026.05.18',due:'2026.05.20',stat:'결재대기',type:'기안서',desc:'5월 23일 클라이언트 A사 최종 PT 발표를 위한 팀 참석 및 비용 집행 승인 요청.'},
+  {title:'5월 광고 집행 비용 정산',from:'김수민',to:'재무팀',date:'2026.05.17',due:'2026.05.22',stat:'검토중',type:'정산서',desc:'5월 디지털 광고 집행 총액 1,200만원 정산 요청. 매체별 증빙 첨부.'},
+  {title:'팝업스토어 협력업체 계약서',from:'최지호',to:'김수민',date:'2026.05.16',due:'2026.05.21',stat:'결재대기',type:'계약서',desc:'홍대 팝업스토어 홍보 협력업체 (주)크리에이티브랩 계약 체결 요청.'},
+  {title:'4월 SNS 운영 성과 보고서',from:'한소영',to:'김수민',date:'2026.05.10',due:'2026.05.12',stat:'승인완료',type:'보고서',desc:'4월 인스타/유튜브/네이버 채널 통합 성과 분석. 오픈율 34.2% 달성.'},
+  {title:'하반기 예산안 (1차)',from:'김수민',to:'CFO',date:'2026.05.08',due:'2026.05.15',stat:'반려',type:'예산서',desc:'하반기 마케팅 예산 3.5억 요청 → 반려 사유: 근거 자료 미흡. 재작성 후 재제출 필요.'},
+];
+apItems.forEach((item,i)=>{
+  item.style.cursor='pointer';
+  item.addEventListener('click',()=>{
+    const d=apDetail[i];if(!d)return;
+    const statCol=d.stat==='결재대기'?'var(--warn)':d.stat==='검토중'?'var(--acc)':d.stat==='승인완료'?'var(--ok)':'var(--err)';
+    openModal(`📋 ${d.title}`,`${d.type} · 상태: ${d.stat}`,`
+      <div class="modal-section">
+        <div class="modal-section-title">결재 정보</div>
+        <div class="modal-row"><span class="modal-row-label">기안자</span><span class="modal-row-val">${d.from}</span></div>
+        <div class="modal-row"><span class="modal-row-label">결재자</span><span class="modal-row-val">${d.to}</span></div>
+        <div class="modal-row"><span class="modal-row-label">기안일</span><span class="modal-row-val">${d.date}</span></div>
+        <div class="modal-row"><span class="modal-row-label">처리 기한</span><span class="modal-row-val">${d.due}</span></div>
+        <div class="modal-row"><span class="modal-row-label">현재 상태</span><span class="modal-row-val" style="color:${statCol};font-weight:700">${d.stat}</span></div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">문서 내용</div>
+        <div style="font-size:.78rem;color:var(--tx2);line-height:1.6;background:var(--bg3);padding:12px;border-radius:var(--rs);border:1px solid var(--border)">${d.desc}</div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">결재 이력</div>
+        <div class="modal-timeline">
+          <div class="mt-item"><div class="mt-dot" style="background:var(--ok);color:#fff">✓</div><div class="mt-content"><div class="mt-title">기안 제출</div><div class="mt-date">${d.date} · ${d.from}</div></div></div>
+          ${d.stat!=='결재대기'?`<div class="mt-item"><div class="mt-dot" style="background:${statCol};color:#fff">${d.stat==='승인완료'?'✓':d.stat==='반려'?'✕':'◐'}</div><div class="mt-content"><div class="mt-title">${d.stat}</div><div class="mt-date">${d.due} · ${d.to}</div></div></div>`:''}
+        </div>
+      </div>`,
+    d.stat==='반려'?'재제출':d.stat==='결재대기'?'결재 촉구':'닫기');
+  });
+});
+
+/* ══ Chart.js ══ */
+const cDef={
+  plugins:{
+    legend:{display:false},
+    tooltip:{backgroundColor:'#1c2235',borderColor:'#2a3050',borderWidth:1,titleColor:'#e4e8f5',bodyColor:'#7a84a8',padding:10}
+  }
+};
+
+/* 막대 차트 */
+new Chart(document.getElementById('barChart'),{
+  type:'bar',
+  data:{
+    labels:['12월','1월','2월','3월','4월','5월'],
+    datasets:[
+      {label:'완료',data:[8,10,7,14,11,9],backgroundColor:'rgba(108,99,255,.75)',borderRadius:5,borderSkipped:false},
+      {label:'진행',data:[3,4,5,3,5,8],backgroundColor:'rgba(255,107,157,.6)',borderRadius:5,borderSkipped:false}
+    ]
+  },
+  options:{...cDef,responsive:true,
+    scales:{
+      x:{grid:{color:'rgba(42,48,80,.4)'},ticks:{color:'#7a84a8',font:{size:11}}},
+      y:{grid:{color:'rgba(42,48,80,.4)'},ticks:{color:'#7a84a8',stepSize:4,font:{size:11}},beginAtZero:true}
+    },
+    plugins:{...cDef.plugins,legend:{display:true,labels:{color:'#7a84a8',boxWidth:10,boxHeight:10,font:{size:11}}}}
+  }
+});
+
+/* 도넛 차트 */
+new Chart(document.getElementById('doughnutChart'),{
+  type:'doughnut',
+  data:{
+    labels:['캠페인','SNS','브랜딩','이벤트','콘텐츠'],
+    datasets:[{data:[35,25,20,12,8],backgroundColor:['#6c63ff','#ff6b9d','#00d4aa','#ffa94d','#4fc3f7'],borderWidth:0,hoverOffset:5}]
+  },
+  options:{...cDef,cutout:'68%',responsive:true}
+});
+
+/* ══════════════════════════════
+   카드 액션 버튼 (.ca) 핸들러
+══════════════════════════════ */
+function bindCA(selector, fn){
+  document.querySelectorAll(selector).forEach(el=>el.addEventListener('click',fn));
+}
+
+// 카드별 .ca 버튼 — textContent로 구분
+document.querySelectorAll('.ca').forEach(btn=>{
+  btn.style.cursor='pointer';
+  const label=btn.textContent.trim();
+
+  if(label==='전체 보기' && btn.closest('.card')?.querySelector('.ct-ic')?.textContent==='👥'){
+    // 팀원 전체 보기
+    btn.onclick=()=>openModal('👥 전체 팀원 현황','NOVA Creative 기획팀 9명 전원',`
+      <div class="modal-section">
+        <div class="modal-section-title">팀 구성</div>
+        ${[['김수민','기획팀장','82%','🟢 온라인','#6c63ff'],['이예린','브랜드 디자이너','95%','🟠 집중모드','#e05c6b'],['박지훈','콘텐츠 크리에이터','68%','🟢 온라인','#00d4aa'],['정미래','기획자','75%','🟢 온라인','#ffa94d'],['최지호','AE','55%','🟡 외근','#0288d1'],['한소영','데이터 분석','70%','🟡 회의중','#00acc1'],['강민준','그래픽 디자이너','88%','🔴 집중모드','#c0392b'],['오세준','카피라이터','40%','⚫ 오프라인','#2e7d52'],['김도현','주니어 디자이너','50%','🟢 온라인','#6c63ff']].map(([nm,role,load,st,col])=>`
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+            <div style="width:34px;height:34px;border-radius:50%;background:${col};display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:#fff;flex-shrink:0">${nm[0]}</div>
+            <div style="flex:1"><div style="font-size:.82rem;font-weight:600">${nm}</div><div style="font-size:.68rem;color:var(--tx2)">${role} · ${st}</div></div>
+            <div style="width:70px"><div style="height:5px;background:var(--bg4);border-radius:3px"><div style="width:${load};height:100%;background:${col};border-radius:3px"></div></div><div style="font-size:.6rem;color:var(--tx2);text-align:right;margin-top:2px">${load}</div></div>
+          </div>`).join('')}
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">팀 업무 부하 평균</div>
+        <div style="font-size:1.4rem;font-weight:800;color:var(--warn);margin-bottom:4px">70.3%</div>
+        <div class="modal-progress" style="height:10px"><div class="modal-progress-fill" style="width:70.3%;background:linear-gradient(90deg,var(--acc),var(--warn))"></div></div>
+        <div style="font-size:.72rem;color:var(--tx2);margin-top:6px">⚠️ 이예린(95%), 강민준(88%) 과부하 주의 필요</div>
+      </div>`,'팀 메시지 보내기');
+  }
+
+  else if(label==='전체 보기' && btn.closest('.card')?.querySelector('.ct-ic')?.textContent==='📋'){
+    // 결재 전체 보기
+    btn.onclick=()=>openModal('📋 결재 · 문서 전체 현황','이달 총 37건 (완료 28 · 진행 9)',`
+      <div class="modal-stat-grid" style="margin-bottom:14px">
+        <div class="modal-stat"><div class="modal-stat-val" style="color:var(--warn)">5</div><div class="modal-stat-lbl">결재 대기</div></div>
+        <div class="modal-stat"><div class="modal-stat-val" style="color:var(--acc)">3</div><div class="modal-stat-lbl">검토 중</div></div>
+        <div class="modal-stat"><div class="modal-stat-val" style="color:var(--err)">1</div><div class="modal-stat-lbl">반려</div></div>
+        <div class="modal-stat"><div class="modal-stat-val" style="color:var(--ok)">28</div><div class="modal-stat-lbl">이달 완료</div></div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">유형별 처리 현황</div>
+        ${[['기안서',10,'var(--acc)'],['보고서',8,'var(--ok)'],['계약서',6,'var(--acc3)'],['정산서',7,'var(--acc4)'],['예산서',4,'var(--acc2)'],['기타',2,'var(--tx2)']].map(([type,cnt,col])=>`
+          <div class="modal-row"><span style="font-size:.8rem">${type}</span>
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="width:80px;height:5px;background:var(--bg4);border-radius:3px"><div style="width:${cnt/10*100}%;height:100%;background:${col};border-radius:3px"></div></div>
+              <span style="font-weight:600;color:${col}">${cnt}건</span>
+            </div>
+          </div>`).join('')}
+      </div>`,'새 문서 작성');
+  }
+
+  else if(label==='전체 보기' && btn.closest('.card')?.querySelector('.ct-ic')?.textContent==='🏃'){
+    // 마일스톤 전체 보기
+    btn.onclick=()=>openModal('🏃 5월 프로젝트 마일스톤 전체','진행 5건 · 완료 3건 · 백로그 2건',`
+      <div class="modal-section">
+        <div class="modal-section-title">전체 진행률</div>
+        <div style="font-size:1.6rem;font-weight:800;color:var(--acc);margin-bottom:4px">59.6%</div>
+        <div class="modal-progress" style="height:10px;margin-bottom:14px"><div class="modal-progress-fill" style="width:59.6%;background:linear-gradient(90deg,#6c63ff,#00d4aa)"></div></div>
+        <div class="modal-section-title">프로젝트별 상세</div>
+        ${[['🎯 여름 시즌 광고','72%','#6c63ff','5/28','정미래'],['🎨 클라이언트 A 브랜드북','45%','#ff6b9d','5/19 ⚠️','이예린'],['🎪 팝업스토어 홍보','60%','#ffa94d','5/30','최지호'],['📊 4월 성과 보고서','88%','#4fc3f7','5/21','한소영'],['📱 인스타 릴스','33%','#00d4aa','5/25','박지훈'],['📺 유튜브 채널 전략','50%','#a89cff','5/26','이예린'],['🎨 BI 가이드라인','10%','#ff8fb8','6/10','강민준'],['📅 하반기 콘텐츠 캘린더','5%','#4fc3f7','6/20','박지훈']].map(([nm,pct,col,due,who])=>`
+          <div style="margin-bottom:10px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+              <span style="font-size:.78rem;font-weight:600">${nm}</span>
+              <span style="font-size:.68rem;color:var(--tx2)">${pct} · ${due}</span>
+            </div>
+            <div class="modal-progress"><div class="modal-progress-fill" style="width:${pct};background:${col}"></div></div>
+            <div style="font-size:.63rem;color:var(--tx2);margin-top:2px">담당: ${who}</div>
+          </div>`).join('')}
+      </div>`,'프로젝트 추가');
+  }
+
+  else if(label==='상세 보기'){
+    // 차트 상세
+    btn.onclick=()=>openModal('📈 월별 프로젝트 완료 현황 상세','최근 6개월 데이터',`
+      <div class="modal-section">
+        <div class="modal-section-title">월별 실적</div>
+        ${[['2025.12',8,3,'정상'],['2026.01',10,4,'우수'],['2026.02',7,5,'보통'],['2026.03',14,3,'우수'],['2026.04',11,5,'정상'],['2026.05',9,8,'진행중']].map(([mo,done,ing,grade])=>`
+          <div class="modal-row">
+            <span style="font-size:.8rem;color:var(--tx2)">${mo}</span>
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="font-size:.75rem">완료 <strong style="color:var(--acc)">${done}</strong></span>
+              <span style="font-size:.75rem">진행 <strong style="color:var(--acc2)">${ing}</strong></span>
+              <span class="modal-tag" style="background:${grade==='우수'?'rgba(76,175,130,.2)':grade==='보통'?'rgba(245,166,35,.2)':'rgba(108,99,255,.2)'};color:${grade==='우수'?'var(--ok)':grade==='보통'?'var(--warn)':'var(--acc)'}">${grade}</span>
+            </div>
+          </div>`).join('')}
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">총계</div>
+        <div class="modal-stat-grid">
+          <div class="modal-stat"><div class="modal-stat-val" style="color:var(--ok)">59</div><div class="modal-stat-lbl">6개월 완료</div></div>
+          <div class="modal-stat"><div class="modal-stat-val" style="color:var(--acc2)">28</div><div class="modal-stat-lbl">6개월 진행</div></div>
+          <div class="modal-stat"><div class="modal-stat-val" style="color:var(--acc4)">9.8</div><div class="modal-stat-lbl">월평균 완료</div></div>
+        </div>
+      </div>`,'CSV 내보내기');
+  }
+
+  else if(label==='일정 추가'){
+    btn.onclick=()=>openModal('✈️ 외부 출장 · 미팅 일정 추가','새 일정을 등록합니다',`
+      <div class="modal-section">
+        <div class="modal-section-title">이번 주 전체 일정</div>
+        ${[['최지호','🤝 협력사 A 대면 미팅','여의도','2026.05.19 10:00','완료'],['김수민','📞 클라이언트 B 전화 미팅','-','2026.05.19 14:00','예정'],['정미래','💻 광고 대행사 화상 미팅','Zoom','2026.05.19 16:00','예정'],['오세준','✈️ 부산 클라이언트 출장','부산','2026.05.20 08:00','예정'],['이예린','🤝 인쇄소 미팅','을지로','2026.05.21 14:00','예정'],['한소영','📞 데이터 파트너사 콜','-','2026.05.22 11:00','예정']].map(([who,type,loc,dt,st])=>`
+          <div class="modal-row">
+            <div>
+              <div style="font-size:.8rem;font-weight:600">${type}</div>
+              <div style="font-size:.65rem;color:var(--tx2);margin-top:2px">${who} · ${loc} · ${dt}</div>
+            </div>
+            <span class="modal-tag" style="background:${st==='완료'?'rgba(76,175,130,.2)':'rgba(108,99,255,.2)'};color:${st==='완료'?'var(--ok)':'var(--acc)'}">${st}</span>
+          </div>`).join('')}
+      </div>`,'+ 새 일정 추가');
+  }
+
+  else if(label==='+ 추가' || label==='＋ 새 항목 추가'){
+    btn.onclick=()=>addTodo();
+  }
+});
+
+/* ══ AI 브리핑 아이템 클릭 ══ */
+const aiItems=document.querySelectorAll('.ai-item');
+const aiBriefData=[
+  {title:'🔥 브랜드북 납기 D-0',sub:'긴급 — 즉시 조치 필요',body:`
+    <div class="modal-section">
+      <div class="modal-section-title">상황 요약</div>
+      <div style="background:rgba(224,92,107,.08);border:1px solid rgba(224,92,107,.3);border-radius:var(--rs);padding:12px;font-size:.8rem;line-height:1.6;color:#ff8f9a">
+        🔴 클라이언트 A 브랜드북 납기가 <strong>오늘(5/19) 18:00</strong>입니다.<br>담당자 이예린의 현재 진행률은 45%로, 즉각적인 지원 또는 납기 협의가 필요합니다.
+      </div>
+      <div class="modal-section-title" style="margin-top:12px">권장 액션</div>
+      ${['즉시 이예린에게 현황 확인 연락','필요 시 강민준 지원 투입 검토','클라이언트 A에 납기 협의 연락 준비','임시 중간본 납품 가능 여부 확인'].map((a,i)=>`
+        <div class="modal-row"><span style="color:var(--err);font-weight:700">${i+1}</span><span style="padding-left:8px;font-size:.8rem">${a}</span></div>`).join('')}
+    </div>`},
+  {title:'📊 PT 발표 D-4 체크',sub:'중요 — 5월 23일 클라이언트 A 최종 PT',body:`
+    <div class="modal-section">
+      <div class="modal-section-title">PT 준비 현황</div>
+      ${[['기획안 초안','완료','var(--ok)'],['디자인 슬라이드','진행중(60%)','var(--warn)'],['데이터 자료 수집','완료','var(--ok)'],['리허설 일정','미정','var(--err)'],['클라이언트 사전 자료 전달','예정','var(--tx2)']].map(([item,stat,col])=>`
+        <div class="modal-row"><span style="font-size:.8rem">${item}</span><span style="font-size:.75rem;font-weight:600;color:${col}">${stat}</span></div>`).join('')}
+      <div class="modal-section-title" style="margin-top:12px">잔여 일정</div>
+      <div class="modal-row"><span style="color:var(--tx2)">5/20 (수)</span><span style="font-size:.78rem">슬라이드 초안 완성 목표</span></div>
+      <div class="modal-row"><span style="color:var(--tx2)">5/21 (목)</span><span style="font-size:.78rem">팀 내부 리뷰</span></div>
+      <div class="modal-row"><span style="color:var(--tx2)">5/22 (금)</span><span style="font-size:.78rem">최종 리허설</span></div>
+      <div class="modal-row"><span style="color:var(--acc)">5/23 (토)</span><span style="font-size:.78rem;font-weight:700">최종 PT 발표 10:00</span></div>
+    </div>`},
+  {title:'📝 주간 보고서 마감 안내',sub:'일반 — 금요일 18:00 마감',body:`
+    <div class="modal-section">
+      <div class="modal-section-title">보고서 작성 현황</div>
+      ${[['데이터 수집','한소영','완료'],['성과 분석','한소영','진행중'],['서술 작성','김수민','예정'],['검토 및 교정','김수민','예정'],['최종 제출','김수민','예정']].map(([task,who,stat])=>`
+        <div class="modal-row">
+          <div><span style="font-size:.8rem">${task}</span><span style="font-size:.65rem;color:var(--tx2);margin-left:6px">· ${who}</span></div>
+          <span style="font-size:.72rem;font-weight:600;color:${stat==='완료'?'var(--ok)':stat==='진행중'?'var(--warn)':'var(--tx2)'}">${stat}</span>
+        </div>`).join('')}
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">마감 안내</div>
+      <div style="font-size:.78rem;color:var(--tx2);line-height:1.6;background:var(--bg3);padding:10px;border-radius:var(--rs)">📌 제출처: 김수민 팀장 이메일<br>📌 형식: PDF + PPT<br>📌 마감: 2026.05.22 (금) 18:00</div>
+    </div>`},
+];
+aiItems.forEach((item,i)=>{
+  item.style.cursor='pointer';
+  item.addEventListener('click',()=>{
+    const d=aiBriefData[i];if(!d)return;
+    openModal(d.title,d.sub,d.body,'담당자 알림');
+  });
+});
+
+/* ══ 실시간 메트릭 클릭 ══ */
+const rtCells=document.querySelectorAll('.rt-cell');
+const rtData=[
+  {title:'📡 캠페인 노출 상세',sub:'이번 달 총 1,378만 노출',body:`
+    <div class="modal-stat-grid" style="margin-bottom:14px">
+      <div class="modal-stat"><div class="modal-stat-val" style="color:var(--acc)">1,378만</div><div class="modal-stat-lbl">총 노출</div></div>
+      <div class="modal-stat"><div class="modal-stat-val" style="color:var(--ok)">▲8.3%</div><div class="modal-stat-lbl">전월比</div></div>
+      <div class="modal-stat"><div class="modal-stat-val" style="color:var(--acc4)">459만</div><div class="modal-stat-lbl">일평균</div></div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">채널별 노출</div>
+      ${[['인스타그램','520만','#6c63ff'],['유튜브','380만','#ff6b9d'],['네이버','310만','#00d4aa'],['카카오','168만','#ffa94d']].map(([ch,val,col])=>`
+        <div class="modal-row"><span>${ch}</span><span style="font-weight:700;color:${col}">${val}</span></div>`).join('')}
+    </div>`},
+  {title:'🎯 CTR 클릭률 상세',sub:'이번 달 평균 CTR 8.92%',body:`
+    <div class="modal-stat-grid" style="margin-bottom:14px">
+      <div class="modal-stat"><div class="modal-stat-val" style="color:var(--acc3)">8.92%</div><div class="modal-stat-lbl">평균 CTR</div></div>
+      <div class="modal-stat"><div class="modal-stat-val" style="color:var(--ok)">▲0.4%p</div><div class="modal-stat-lbl">전월比</div></div>
+      <div class="modal-stat"><div class="modal-stat-val" style="color:var(--acc)">8.52%</div><div class="modal-stat-lbl">업계 평균</div></div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">채널별 CTR</div>
+      ${[['인스타그램','11.2%','#6c63ff'],['유튜브','7.8%','#ff6b9d'],['네이버','8.1%','#00d4aa'],['카카오','8.6%','#ffa94d']].map(([ch,val,col])=>`
+        <div class="modal-row"><span>${ch}</span><span style="font-weight:700;color:${col}">${val}</span></div>`).join('')}
+    </div>`},
+  {title:'🔄 전환 건수 상세',sub:'이번 달 총 1,492건 전환',body:`
+    <div class="modal-stat-grid" style="margin-bottom:14px">
+      <div class="modal-stat"><div class="modal-stat-val" style="color:var(--acc4)">1,492</div><div class="modal-stat-lbl">총 전환</div></div>
+      <div class="modal-stat"><div class="modal-stat-val" style="color:var(--err)">▼2.1%</div><div class="modal-stat-lbl">전월比</div></div>
+      <div class="modal-stat"><div class="modal-stat-val" style="color:var(--acc)">49.7</div><div class="modal-stat-lbl">일평균</div></div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">전환 유형별</div>
+      ${[['링크 클릭','820건','#6c63ff'],['앱 설치','312건','#00d4aa'],['구매 완료','218건','#ffa94d'],['문의/상담','142건','#ff6b9d']].map(([type,val,col])=>`
+        <div class="modal-row"><span>${type}</span><span style="font-weight:700;color:${col}">${val}</span></div>`).join('')}
+    </div>`},
+  {title:'📱 SNS 팔로워 증가',sub:'이번 주 +190명 신규 팔로워',body:`
+    <div class="modal-stat-grid" style="margin-bottom:14px">
+      <div class="modal-stat"><div class="modal-stat-val" style="color:var(--acc2)">+190</div><div class="modal-stat-lbl">이번 주</div></div>
+      <div class="modal-stat"><div class="modal-stat-val" style="color:var(--ok)">+752</div><div class="modal-stat-lbl">이번 달</div></div>
+      <div class="modal-stat"><div class="modal-stat-val" style="color:var(--acc)">12.4만</div><div class="modal-stat-lbl">총 팔로워</div></div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">채널별 팔로워</div>
+      ${[['인스타그램','8.2만 (+95)','#6c63ff'],['유튜브','2.1만 (+42)','#ff6b9d'],['네이버 블로그','1.5만 (+32)','#00d4aa'],['카카오','5,800 (+21)','#ffa94d']].map(([ch,val,col])=>`
+        <div class="modal-row"><span>${ch}</span><span style="font-weight:700;color:${col}">${val}</span></div>`).join('')}
+    </div>`},
+];
+rtCells.forEach((cell,i)=>{
+  cell.style.cursor='pointer';
+  cell.style.transition='background .15s';
+  cell.addEventListener('mouseenter',()=>cell.style.background='var(--bg4)');
+  cell.addEventListener('mouseleave',()=>cell.style.background='');
+  cell.addEventListener('click',()=>{const d=rtData[i];if(d)openModal(d.title,d.sub,d.body,'상세 리포트');});
+});
+
+/* ══ 회의실 행 클릭 ══ */
+const roomRows=document.querySelectorAll('.room-row');
+const roomData=[
+  {name:'1 대회의실',cap:20,equip:'빔프로젝터, 화이트보드, 마이크',schedules:[['09:00–11:00','비어있음',''],['11:00–14:00','기획팀 MT','정미래'],['14:00–18:00','비어있음','']],stat:'가능'},
+  {name:'2 소회의실',cap:8,equip:'모니터, 화이트보드',schedules:[['09:00–10:00','주간MTG','김수민'],['10:00–12:00','클라이언트 미팅','최지호'],['13:00–18:00','비어있음','']],stat:'사용중'},
+  {name:'3 크리에이티브룸',cap:6,equip:'대형 모니터, 타블렛, 스케치보드',schedules:[['09:00–13:00','비어있음',''],['13:00–15:00','PT 연습','정미래'],['15:00–18:00','비어있음','']],stat:'가능'},
+  {name:'4 화상회의실',cap:4,equip:'웹캠, 스피커, Zoom 전용',schedules:[['09:00–10:00','클라이언트 A 화상','김수민'],['10:00–18:00','비어있음','']],stat:'가능'},
+];
+roomRows.forEach((row,i)=>{
+  row.style.cursor='pointer';
+  row.addEventListener('click',()=>{
+    const d=roomData[i];if(!d)return;
+    openModal(`🏢 ${d.name}`,`수용인원 ${d.cap}명 · 현재: ${d.stat}`,`
+      <div class="modal-section">
+        <div class="modal-section-title">시설 정보</div>
+        <div class="modal-row"><span class="modal-row-label">수용 인원</span><span class="modal-row-val">${d.cap}명</span></div>
+        <div class="modal-row"><span class="modal-row-label">비품</span><span class="modal-row-val" style="text-align:right;font-size:.75rem">${d.equip}</span></div>
+        <div class="modal-row"><span class="modal-row-label">현재 상태</span><span class="modal-row-val" style="color:${d.stat==='가능'?'var(--ok)':'var(--err)'}">${d.stat}</span></div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">오늘 예약 현황</div>
+        ${d.schedules.map(([time,title,who])=>`
+          <div class="modal-row">
+            <div><div style="font-size:.78rem;font-weight:600">${title}</div>${who?`<div style="font-size:.65rem;color:var(--tx2)">${who}</div>`:''}</div>
+            <span style="font-size:.72rem;color:var(--tx2)">${time}</span>
+          </div>`).join('')}
+      </div>`,`${d.stat==='가능'?'이 회의실 예약':'예약 불가'}`);
+  });
+});
+
+/* ══ 캘린더 이벤트 클릭 ══ */
+const calEvs=document.querySelectorAll('.cal-ev');
+const calData=[
+  {title:'📦 클라이언트 A 브랜드북 납기',date:'2026.05.19 (화)',type:'납품',detail:'브랜드북 최종 PDF 파일 클라이언트 A 담당자(박부장)에게 전달. 이예린 담당. 18:00 마감.', urgent:true},
+  {title:'📊 4월 성과 보고서 마감',date:'2026.05.21 (목)',type:'보고서',detail:'4월 SNS·광고 통합 성과 보고서 제출. 한소영 → 김수민. 오전 중 공유 필요.',urgent:false},
+  {title:'🎤 클라이언트 A 최종 PT',date:'2026.05.23 (토) 10:00',type:'발표',detail:'클라이언트 A사 여의도 본사 대회의실. 팀 전원 참석 필수. 기획팀 + 디자인팀.',urgent:true},
+  {title:'📱 릴스 콘텐츠 업로드',date:'2026.05.25 (월)',type:'SNS',detail:'인스타그램 릴스 5월 콘텐츠 4편 일괄 업로드. 박지훈 담당. 오후 7시 예정.',urgent:false},
+  {title:'🎯 여름 캠페인 기획안 마감',date:'2026.05.28 (목)',type:'기획',detail:'여름 시즌 디지털 광고 기획안 최종본 제출. 정미래 → 김수민 → 클라이언트 검토.',urgent:false},
+];
+calEvs.forEach((ev,i)=>{
+  ev.style.cursor='pointer';
+  ev.style.borderRadius='5px';
+  ev.style.padding='2px 4px';
+  ev.style.transition='background .15s';
+  ev.addEventListener('mouseenter',()=>ev.style.background='var(--bg4)');
+  ev.addEventListener('mouseleave',()=>ev.style.background='');
+  ev.addEventListener('click',()=>{
+    const d=calData[i];if(!d)return;
+    openModal(d.title,`${d.date} · ${d.type}`,`
+      <div class="modal-section">
+        <div class="modal-section-title">일정 상세</div>
+        ${d.urgent?`<div style="background:rgba(224,92,107,.08);border:1px solid rgba(224,92,107,.3);border-radius:var(--rs);padding:10px;font-size:.75rem;color:#ff8f9a;margin-bottom:10px">🔥 중요 일정 — 팀 공유 필수</div>`:''}
+        <div style="font-size:.82rem;line-height:1.7;color:var(--tx2);background:var(--bg3);padding:12px;border-radius:var(--rs)">${d.detail}</div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">날짜 정보</div>
+        <div class="modal-row"><span class="modal-row-label">일시</span><span class="modal-row-val">${d.date}</span></div>
+        <div class="modal-row"><span class="modal-row-label">구분</span><span class="modal-row-val">${d.type}</span></div>
+        <div class="modal-row"><span class="modal-row-label">중요도</span><span class="modal-row-val" style="color:${d.urgent?'var(--err)':'var(--ok)'}">${d.urgent?'🔴 긴급':'🟢 일반'}</span></div>
+      </div>`,'캘린더에 추가');
+  });
+});
+
+/* ══ 활동 피드 클릭 ══ */
+const fiItems=document.querySelectorAll('.fi');
+const fiData=[
+  {who:'김수민',action:'여름 광고 기획 검토 완료',time:'방금 전',detail:'여름 시즌 디지털 광고 기획안 1차 검토 완료. 정미래에게 피드백 전달 예정. 전체 방향성 승인, 소재 콘셉트 수정 요청.'},
+  {who:'박지훈',action:'릴스 콘티 파일 업로드',time:'12분 전',detail:'인스타그램 릴스 5월 콘텐츠 콘티 보드 공유 드라이브 업로드 완료. 파일: [릴스_콘티_v3_0519.pdf]. 승인 요청.'},
+  {who:'강민준',action:'브랜드북 납기 변경 요청',time:'35분 전',detail:'클라이언트 A 브랜드북 최종 납기를 5/19 → 5/22로 변경 요청. 사유: 타이포그래피 최종 수정 필요. 클라이언트 협의 필요.'},
+  {who:'한소영',action:'4월 성과 보고서 초안 공유',time:'1시간 전',detail:'4월 SNS 성과 보고서 초안 공유. 주요 성과: 인스타 CTR 11.2%(목표 대비 +1.2%p), 유튜브 구독자 +340명.'},
+  {who:'정미래',action:"팝업스토어 전략 '진행중'으로 이동",time:'2시간 전',detail:"팝업스토어 홍보 전략 프로젝트 상태를 '백로그'에서 '진행중'으로 변경. 장소 섭외 완료(홍대 A구역), 홍보물 기획 착수."},
+];
+fiItems.forEach((item,i)=>{
+  item.style.cursor='pointer';
+  item.style.borderRadius='5px';
+  item.style.transition='background .15s';
+  item.addEventListener('mouseenter',()=>item.style.background='var(--bg3)');
+  item.addEventListener('mouseleave',()=>item.style.background='');
+  item.addEventListener('click',()=>{
+    const d=fiData[i];if(!d)return;
+    openModal(`🔔 ${d.who}의 활동`,d.time,`
+      <div class="modal-section">
+        <div class="modal-section-title">활동 내용</div>
+        <div style="font-size:.85rem;font-weight:600;margin-bottom:8px">${d.action}</div>
+        <div style="font-size:.8rem;line-height:1.7;color:var(--tx2);background:var(--bg3);padding:12px;border-radius:var(--rs)">${d.detail}</div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">활동 정보</div>
+        <div class="modal-row"><span class="modal-row-label">담당자</span><span class="modal-row-val">${d.who}</span></div>
+        <div class="modal-row"><span class="modal-row-label">시간</span><span class="modal-row-val">${d.time}</span></div>
+      </div>`,'답장하기',()=>{closeModalDirect();});
+  });
+});
+
+/* ══ 공지 항목 클릭 ══ */
+const noticeItems=document.querySelectorAll('.cb > div[style*="border-left"]');
+const noticeData=[
+  {title:'🔥 클라이언트 A PT 확정',date:'2026.05.23 (토) 10:00',loc:'여의도 본사 대회의실',detail:'클라이언트 A사 최종 제안 발표가 확정되었습니다. 팀 전원 참석이 필수이며 09:30까지 집합 바랍니다. 복장은 비즈니스 캐주얼. PT 자료는 5/22까지 완성 필요.'},
+  {title:'⚠️ 브랜드북 납기 D-0 경고',date:'오늘(2026.05.19) 18:00',loc:'시스템 자동 알림',detail:'클라이언트 A 브랜드북 납기가 오늘 18:00입니다. 담당자 이예린의 현재 진행률 45%. 즉시 확인 및 조치가 필요합니다.'},
+  {title:'✅ 5월 뉴스레터 발행 완료',date:'2026.05.15',loc:'콘텐츠팀 공지',detail:'5월 뉴스레터가 성공적으로 발행되었습니다. 오픈율 34.2%(전월 28.4% 대비 +5.8%p). 클릭률 12.1%. 구독자 반응 우수. 다음 달도 동일 방향으로 진행 예정.'},
+];
+noticeItems.forEach((item,i)=>{
+  item.style.cursor='pointer';
+  item.style.transition='opacity .15s';
+  item.addEventListener('mouseenter',()=>item.style.opacity='.85');
+  item.addEventListener('mouseleave',()=>item.style.opacity='1');
+  item.addEventListener('click',()=>{
+    const d=noticeData[i];if(!d)return;
+    openModal(d.title,`${d.date} · ${d.loc}`,`
+      <div class="modal-section">
+        <div class="modal-section-title">공지 내용</div>
+        <div style="font-size:.82rem;line-height:1.7;color:var(--tx2);background:var(--bg3);padding:14px;border-radius:var(--rs)">${d.detail}</div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">공지 정보</div>
+        <div class="modal-row"><span class="modal-row-label">일시</span><span class="modal-row-val">${d.date}</span></div>
+        <div class="modal-row"><span class="modal-row-label">출처</span><span class="modal-row-val">${d.loc}</span></div>
+      </div>`,'확인 완료');
+  });
+});
+
+/* ══ 출장 행 클릭 ══ */
+const tripRows=document.querySelectorAll('.trip-row');
+const tripData=[
+  {who:'최지호',type:'대면 미팅',place:'여의도 협력사 A',time:'오전 10:00 진행중',detail:'협력사 A (주)마케팅파트너스 방문. 팝업스토어 홍보 협력 계약 최종 조율. 예상 종료 12:00.'},
+  {who:'김수민',type:'전화 미팅',place:'-',time:'오후 14:00 예정',detail:'클라이언트 B 담당자 이과장과 6월 캠페인 방향성 사전 논의. 30분 예정.'},
+  {who:'정미래',type:'화상 미팅',place:'Zoom',time:'오후 16:00 예정',detail:'광고 대행사 제안 미팅. 여름 시즌 매체 집행 견적 및 플랜 검토. 1시간 예정.'},
+  {who:'오세준',type:'출장',place:'부산',time:'내일 오전 출발',detail:'부산 클라이언트 C 방문. 브랜드 캠페인 최종 시안 오프라인 프레젠테이션. 1박 2일.'},
+];
+tripRows.forEach((row,i)=>{
+  row.style.cursor='pointer';
+  row.style.borderRadius='5px';
+  row.style.padding='2px 4px';
+  row.style.transition='background .15s';
+  row.addEventListener('mouseenter',()=>row.style.background='var(--bg3)');
+  row.addEventListener('mouseleave',()=>row.style.background='');
+  row.addEventListener('click',()=>{
+    const d=tripData[i];if(!d)return;
+    openModal(`✈️ ${d.who} — ${d.type}`,`${d.place} · ${d.time}`,`
+      <div class="modal-section">
+        <div class="modal-section-title">일정 상세</div>
+        <div style="font-size:.82rem;line-height:1.7;color:var(--tx2);background:var(--bg3);padding:12px;border-radius:var(--rs)">${d.detail}</div>
+        <div class="modal-row" style="margin-top:10px"><span class="modal-row-label">담당자</span><span class="modal-row-val">${d.who}</span></div>
+        <div class="modal-row"><span class="modal-row-label">유형</span><span class="modal-row-val">${d.type}</span></div>
+        <div class="modal-row"><span class="modal-row-label">장소</span><span class="modal-row-val">${d.place}</span></div>
+        <div class="modal-row"><span class="modal-row-label">시간</span><span class="modal-row-val">${d.time}</span></div>
+      </div>`,'일정 수정');
+  });
+});
+
+/* ══ 사이드바 네비 — 섹션 스크롤 ══ */
+const navMap=[
+  {text:'대시보드 홈', id:null},
+  {text:'프로젝트', id:'.ms-list'},
+  {text:'할 일', id:'#todoBody'},
+  {text:'결재 문서', id:'.ap-list'},
+  {text:'팀원 현황', id:'.tm-list'},
+  {text:'캠페인 현황', id:'.rt-grid'},
+  {text:'SNS 채널', id:'.cal-ev-list'},
+  {text:'성과 분석', id:'#barChart'},
+  {text:'일정 캘린더', id:'.cal-grid'},
+  {text:'팀 메시지', id:'.feed'},
+  {text:'설정', id:null},
+];
+document.querySelectorAll('.ni').forEach((ni,i)=>{
+  ni.addEventListener('click',function(){
+    document.querySelectorAll('.ni').forEach(x=>x.classList.remove('on'));
+    this.classList.add('on');
+    const map=navMap[i];
+    if(map&&map.id){
+      const el=document.querySelector(map.id);
+      if(el)el.scrollIntoView({behavior:'smooth',block:'center'});
+    } else {
+      window.scrollTo({top:0,behavior:'smooth'});
+    }
+  });
+});
+</script>
+</body>
+</html>

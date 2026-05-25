@@ -1,0 +1,1616 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NOVA 업무 종합대시보드 v2 — 김수민</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#0d1117;--card:#161b27;--card2:#1c2235;--border:#2a3050;
+  --acc:#6c63ff;--pink:#ff6b9d;--green:#2ed573;--amber:#ff9f43;--red:#ff4757;--info:#4fc3f7;
+  --tx:#e4e8f5;--muted:#7a84a8;--dim:#3e4668;
+  --r:12px;--rs:8px;--sw:210px;
+}
+html,body{font-family:'Segoe UI','Apple SD Gothic Neo',sans-serif;background:var(--bg);color:var(--tx);height:100%;font-size:13px;}
+
+/* ── LOGIN ── */
+#loginScreen{
+  position:fixed;inset:0;z-index:9999;
+  background:linear-gradient(135deg,#0d1117 0%,#1a1a2e 50%,#0d1117 100%);
+  display:flex;align-items:center;justify-content:center;
+}
+.lc{width:420px;max-width:95vw;}
+.lc-logo{text-align:center;margin-bottom:32px;}
+.lc-logo .logo-text{font-size:2rem;font-weight:800;background:linear-gradient(90deg,var(--acc),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.lc-logo .school-info{font-size:0.72rem;color:var(--muted);margin-top:6px;line-height:1.6;}
+.lc-box{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:32px;}
+.lc-box h2{font-size:1.1rem;margin-bottom:6px;}
+.lc-box .sub{font-size:0.8rem;color:var(--muted);margin-bottom:24px;}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 20px;border-radius:var(--rs);border:none;cursor:pointer;font-size:0.88rem;font-weight:600;transition:all .2s;font-family:inherit;}
+.btn-google{background:#fff;color:#333;width:100%;margin-bottom:10px;}
+.btn-google:hover{background:#f5f5f5;box-shadow:0 2px 8px rgba(0,0,0,0.2);}
+.btn-demo{background:rgba(108,99,255,0.15);color:var(--acc);border:1px solid var(--acc);width:100%;margin-bottom:16px;}
+.btn-demo:hover{background:rgba(108,99,255,0.25);}
+.btn-primary{background:var(--acc);color:#fff;}
+.btn-primary:hover{background:#5a52d5;}
+.btn-danger{background:var(--red);color:#fff;}
+.btn-sm{padding:5px 12px;font-size:0.78rem;}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--tx);}
+.btn-outline:hover{border-color:var(--acc);color:var(--acc);}
+
+/* Firebase setup on login */
+.fb-setup{border-top:1px solid var(--border);padding-top:16px;margin-top:4px;}
+.fb-setup-toggle{display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:0.8rem;color:var(--muted);margin-bottom:0;}
+.fb-setup-toggle:hover{color:var(--tx);}
+.fb-setup-body{display:none;margin-top:14px;}
+.fb-setup-body.open{display:block;}
+.fb-status{display:inline-flex;align-items:center;gap:5px;font-size:0.72rem;padding:3px 8px;border-radius:10px;}
+.fb-status.ok{background:rgba(46,213,115,0.15);color:var(--green);}
+.fb-status.no{background:rgba(255,71,87,0.15);color:var(--red);}
+.fi-row{margin-bottom:8px;}
+.fi-row label{display:block;font-size:0.72rem;color:var(--muted);margin-bottom:3px;}
+.fi-row input{width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:var(--rs);color:var(--tx);padding:7px 10px;font-size:0.8rem;font-family:inherit;}
+.fi-row input:focus{outline:none;border-color:var(--acc);}
+
+/* ── ROLE PICKER ── */
+#roleOverlay{position:fixed;inset:0;z-index:8888;background:rgba(0,0,0,0.75);display:none;align-items:center;justify-content:center;}
+#roleOverlay.show{display:flex;}
+.role-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:36px;text-align:center;width:380px;}
+.role-card h2{margin-bottom:6px;}
+.role-card p{color:var(--muted);font-size:0.85rem;margin-bottom:28px;}
+.role-options{display:flex;gap:12px;justify-content:center;}
+.role-opt{background:rgba(255,255,255,0.04);border:2px solid var(--border);border-radius:var(--r);padding:20px 18px;cursor:pointer;transition:all .2s;min-width:90px;}
+.role-opt:hover{border-color:var(--acc);background:rgba(108,99,255,0.1);}
+.role-opt .ri{font-size:1.8rem;margin-bottom:8px;}
+.role-opt .rl{font-size:0.82rem;font-weight:600;}
+
+/* ── APP LAYOUT ── */
+#appScreen{display:none;}
+#appScreen.show{display:flex;height:100vh;overflow:hidden;}
+
+/* SIDEBAR */
+.sb{width:var(--sw);background:var(--card);border-right:1px solid var(--border);display:flex;flex-direction:column;height:100vh;flex-shrink:0;}
+.sb-logo{padding:16px 14px 12px;border-bottom:1px solid var(--border);}
+.sb-logo .logo{font-size:0.95rem;font-weight:800;background:linear-gradient(90deg,var(--acc),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sb-logo .school{font-size:0.6rem;color:var(--muted);line-height:1.55;margin-top:4px;}
+.sb-logo .role-badge{display:inline-block;font-size:0.62rem;background:var(--acc);color:#fff;padding:2px 7px;border-radius:10px;margin-top:5px;}
+.sb-nav{flex:1;padding:10px 8px;overflow-y:auto;}
+.nav-section{font-size:0.6rem;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:1px;padding:8px 8px 4px;}
+.ni{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:var(--rs);cursor:pointer;color:var(--muted);font-size:0.83rem;transition:all .15s;margin-bottom:1px;text-decoration:none;}
+.ni:hover{background:rgba(108,99,255,0.1);color:var(--tx);}
+.ni.active{background:rgba(108,99,255,0.18);color:var(--acc);font-weight:600;}
+.ni .ic{width:18px;text-align:center;font-size:0.95rem;}
+.sb-foot{padding:12px 10px;border-top:1px solid var(--border);}
+.user-row{display:flex;align-items:center;gap:8px;}
+.ava{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--pink));display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:700;color:#fff;flex-shrink:0;}
+.user-info{flex:1;min-width:0;}
+.user-info .uname{font-size:0.82rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.user-info .uemail{font-size:0.62rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.logout-btn{background:none;border:none;cursor:pointer;color:var(--muted);font-size:0.85rem;padding:2px;}
+.logout-btn:hover{color:var(--red);}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.topbar{height:52px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0;position:sticky;top:0;z-index:100;}
+.topbar-title{font-size:0.98rem;font-weight:700;flex:1;}
+.topbar-school{font-size:0.68rem;color:var(--muted);}
+.topbar-right{display:flex;align-items:center;gap:8px;}
+.user-chip{display:flex;align-items:center;gap:6px;background:rgba(108,99,255,0.1);padding:5px 12px;border-radius:20px;font-size:0.82rem;}
+.dot-on{width:7px;height:7px;border-radius:50%;background:var(--green);}
+
+/* PAGE CONTENT - single scrollable */
+.page-scroll{flex:1;overflow-y:auto;padding:20px 22px 40px;}
+
+/* SECTION HEADERS */
+.sec-header{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.sec-header h2{font-size:1rem;font-weight:700;}
+.sec-header .sec-badge{font-size:0.68rem;background:rgba(108,99,255,0.15);color:var(--acc);padding:3px 10px;border-radius:10px;}
+.section-block{margin-bottom:36px;}
+
+/* KPI CARDS */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;display:flex;align-items:center;gap:14px;}
+.kpi-ic{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;}
+.kpi-data .label{font-size:0.7rem;color:var(--muted);}
+.kpi-data .val{font-size:1.7rem;font-weight:800;line-height:1.1;}
+.kpi-data .change{font-size:0.68rem;margin-top:2px;}
+
+/* DASHBOARD GRID ROW */
+.dash-row{display:grid;gap:14px;margin-bottom:14px;}
+.col-2-1{grid-template-columns:1.6fr 1fr;}
+.col-1-1{grid-template-columns:1fr 1fr;}
+.col-3{grid-template-columns:repeat(3,1fr);}
+.dash-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:18px;overflow:hidden;}
+.dash-card h3{font-size:0.88rem;font-weight:700;margin-bottom:14px;color:var(--tx);}
+.chart-box{position:relative;height:180px;}
+.chart-box-lg{position:relative;height:220px;}
+
+/* TEAM LIST */
+.team-list{display:flex;flex-direction:column;gap:7px;}
+.team-row{display:flex;align-items:center;gap:9px;padding:7px 9px;background:var(--card2);border-radius:var(--rs);font-size:0.82rem;}
+.team-ava{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;color:#fff;flex-shrink:0;}
+.team-info{flex:1;}
+.team-name{font-weight:600;font-size:0.82rem;}
+.team-task{font-size:0.68rem;color:var(--muted);}
+.status-pill{font-size:0.65rem;font-weight:600;padding:2px 8px;border-radius:10px;}
+.sp-on{background:rgba(46,213,115,0.15);color:var(--green);}
+.sp-busy{background:rgba(255,159,67,0.15);color:var(--amber);}
+.sp-off{background:rgba(116,125,140,0.15);color:#747d8c;}
+
+/* TASK TABLE */
+.task-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+.inp{background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:var(--rs);color:var(--tx);padding:8px 12px;font-size:0.83rem;font-family:inherit;}
+.inp:focus{outline:none;border-color:var(--acc);}
+select.inp option{background:#161b27;}
+.task-table{width:100%;border-collapse:collapse;font-size:0.83rem;}
+.task-table th{text-align:left;padding:9px 12px;border-bottom:1px solid var(--border);color:var(--muted);font-weight:600;font-size:0.75rem;}
+.task-table td{padding:9px 12px;border-bottom:1px solid rgba(42,48,80,0.4);}
+.task-table tr:hover td{background:rgba(255,255,255,0.02);}
+.badge{padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:600;display:inline-block;}
+.b-done{background:rgba(46,213,115,0.15);color:var(--green);}
+.b-prog{background:rgba(255,159,67,0.15);color:var(--amber);}
+.b-delay{background:rgba(255,71,87,0.15);color:var(--red);}
+.b-todo{background:rgba(108,99,255,0.15);color:var(--acc);}
+
+/* CHAT */
+.chat-wrap{display:grid;grid-template-columns:180px 1fr;height:400px;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.chat-rooms{background:var(--card2);border-right:1px solid var(--border);overflow-y:auto;}
+.room-item{padding:11px 14px;cursor:pointer;border-bottom:1px solid rgba(42,48,80,0.3);font-size:0.83rem;transition:background .2s;}
+.room-item:hover,.room-item.active{background:rgba(108,99,255,0.15);color:var(--acc);}
+.chat-body{display:flex;flex-direction:column;background:var(--bg);}
+.chat-hd{padding:10px 14px;border-bottom:1px solid var(--border);font-size:0.88rem;font-weight:600;background:var(--card);}
+.chat-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:9px;}
+.bubble{display:flex;flex-direction:column;max-width:60%;}
+.bubble.me{align-self:flex-end;align-items:flex-end;}
+.bubble.other{align-self:flex-start;}
+.b-name{font-size:0.68rem;color:var(--muted);margin-bottom:3px;}
+.b-text{padding:9px 13px;border-radius:12px;font-size:0.85rem;line-height:1.5;word-break:break-word;}
+.bubble.me .b-text{background:var(--acc);color:#fff;border-radius:12px 12px 2px 12px;}
+.bubble.other .b-text{background:rgba(255,255,255,0.08);border-radius:12px 12px 12px 2px;}
+.b-time{font-size:0.65rem;color:var(--muted);margin-top:2px;}
+.chat-input-row{padding:10px 14px;border-top:1px solid var(--border);display:flex;gap:8px;background:var(--card);}
+.chat-input-row .inp{flex:1;}
+
+/* POSTIT BOARD */
+.postit-board{position:relative;min-height:500px;background:rgba(255,255,255,0.015);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.postit-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+.color-dot{width:24px;height:24px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:transform .15s;}
+.color-dot:hover,.color-dot.sel{transform:scale(1.25);border-color:#fff;}
+.postit{position:absolute;width:158px;min-height:130px;border-radius:8px;padding:10px;cursor:move;box-shadow:3px 4px 14px rgba(0,0,0,0.35);font-size:0.8rem;color:#222;user-select:none;}
+.postit textarea{width:100%;background:transparent;border:none;outline:none;resize:none;color:inherit;font-family:inherit;font-size:inherit;min-height:80px;line-height:1.5;}
+.postit .p-footer{display:flex;justify-content:space-between;align-items:center;margin-top:4px;}
+.postit .p-author{font-size:0.62rem;opacity:0.6;}
+.p-del{background:rgba(0,0,0,0.12);border:none;border-radius:4px;cursor:pointer;padding:2px 5px;font-size:0.68rem;color:#444;}
+.postit:hover{box-shadow:5px 6px 20px rgba(0,0,0,0.4);}
+
+/* ANALYTICS */
+.period-tabs{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap;}
+.period-tab{padding:7px 16px;border-radius:20px;background:rgba(255,255,255,0.05);border:1px solid var(--border);cursor:pointer;font-size:0.82rem;color:var(--muted);transition:all .2s;}
+.period-tab.active{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600;}
+.analytics-grid{display:grid;grid-template-columns:1.8fr 1fr;gap:14px;}
+.a-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:18px;}
+.a-card h3{font-size:0.88rem;font-weight:700;margin-bottom:14px;}
+.summary-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;}
+.stat-cell{background:var(--card2);border-radius:var(--rs);padding:10px;text-align:center;}
+.stat-cell .sv{font-size:1.3rem;font-weight:700;}
+.stat-cell .sl{font-size:0.65rem;color:var(--muted);margin-top:2px;}
+
+/* CALENDAR */
+.cal-nav{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
+.cal-nav h3{flex:1;text-align:center;font-size:1rem;font-weight:700;}
+.cal-nav-btn{background:var(--card2);border:1px solid var(--border);border-radius:var(--rs);color:var(--tx);cursor:pointer;padding:5px 10px;font-size:0.85rem;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.cal-dow{text-align:center;font-size:0.72rem;color:var(--muted);font-weight:600;padding:5px 0;}
+.cal-dow:first-child{color:var(--red);}
+.cal-dow:last-child{color:var(--info);}
+.cal-cell{min-height:70px;background:rgba(255,255,255,0.025);border:1px solid var(--border);border-radius:6px;padding:5px;cursor:pointer;transition:background .2s;}
+.cal-cell:hover{background:rgba(108,99,255,0.08);}
+.cal-cell.today{border-color:var(--acc);background:rgba(108,99,255,0.1);}
+.cal-cell.other-m{opacity:0.3;}
+.cal-dn{font-size:0.75rem;font-weight:600;margin-bottom:3px;}
+.cal-ev{font-size:0.62rem;background:var(--acc);color:#fff;border-radius:3px;padding:1px 4px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+/* ADMIN */
+.admin-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:14px;}
+.admin-card h3{font-size:0.95rem;font-weight:700;margin-bottom:14px;color:var(--acc);}
+.user-table{width:100%;border-collapse:collapse;font-size:0.83rem;}
+.user-table th{text-align:left;padding:8px 12px;border-bottom:1px solid var(--border);color:var(--muted);font-size:0.75rem;}
+.user-table td{padding:8px 12px;border-bottom:1px solid rgba(42,48,80,0.4);}
+
+/* SETTINGS */
+.set-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:14px;}
+.set-card h3{font-size:0.95rem;font-weight:700;margin-bottom:16px;color:var(--acc);}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.fg{display:flex;flex-direction:column;gap:4px;}
+.fg label{font-size:0.75rem;color:var(--muted);}
+.fg .inp{width:100%;}
+.fg-full{grid-column:1/-1;}
+.set-note{font-size:0.75rem;color:var(--muted);background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:var(--rs);padding:10px 14px;line-height:1.7;margin-bottom:10px;}
+
+/* MODAL */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:5000;display:none;align-items:center;justify-content:center;}
+.modal-ov.show{display:flex;}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:26px;width:460px;max-width:94vw;}
+.modal h3{margin-bottom:18px;font-size:1rem;}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;}
+.mfg{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;}
+.mfg label{font-size:0.78rem;color:var(--muted);}
+.mfg .inp{width:100%;}
+
+/* TOAST */
+#toast{position:fixed;bottom:22px;right:22px;padding:10px 18px;border-radius:var(--rs);font-size:0.83rem;z-index:9998;opacity:0;transition:opacity .3s;pointer-events:none;}
+#toast.show{opacity:1;}
+#toast.success{background:#2ed573;color:#fff;}
+#toast.error{background:var(--red);color:#fff;}
+#toast.info{background:var(--acc);color:#fff;}
+
+/* EMAIL REPORT */
+.email-btn-row{display:flex;align-items:center;gap:10px;margin-top:14px;}
+</style>
+</head>
+<body>
+
+<!-- ════════════════ LOGIN SCREEN ════════════════ -->
+<div id="loginScreen">
+  <div class="lc">
+    <div class="lc-logo">
+      <div class="logo-text">🌐 NOVA Dashboard</div>
+      <div class="school-info">
+        한국외국어대학교 차이나데이터큐레이션전공<br>
+        202404764 김수민
+      </div>
+    </div>
+    <div class="lc-box">
+      <h2>업무 종합대시보드 v2.0</h2>
+      <p class="sub">Google 계정으로 로그인하거나 데모 모드로 시작하세요</p>
+
+      <button class="btn btn-google" onclick="loginWithGoogle()">
+        <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18z"/><path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 0 1-7.18-2.54H1.83v2.07A8 8 0 0 0 8.98 17z"/><path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 0 1 0-3.04V5.41H1.83a8 8 0 0 0 0 7.18l2.67-2.07z"/><path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 0 0 1.83 5.4L4.5 7.49a4.77 4.77 0 0 1 4.48-3.3z"/></svg>
+        Google로 로그인
+      </button>
+      <button class="btn btn-demo" onclick="loginDemo()">🧪 데모 모드로 시작</button>
+
+      <!-- Firebase Setup -->
+      <div class="fb-setup">
+        <div class="fb-setup-toggle" onclick="toggleFBSetup()">
+          <span>⚙️ Google 로그인을 위한 Firebase 설정</span>
+          <span id="fbStatusBadge" class="fb-status no">● 미설정</span>
+        </div>
+        <div class="fb-setup-body" id="fbSetupBody">
+          <div class="set-note" style="margin-top:10px;">
+            1. <a href="https://console.firebase.google.com" target="_blank" style="color:var(--acc);">Firebase Console</a>에서 프로젝트 생성<br>
+            2. Authentication → Google 로그인 사용 설정<br>
+            3. 프로젝트 설정 → 앱 추가(웹) → 아래에 config 입력<br>
+            4. Railway URL을 승인된 도메인에 추가
+          </div>
+          <div class="fi-row"><label>API Key</label><input id="fb_apiKey" placeholder="AIzaSy..."></div>
+          <div class="fi-row"><label>Auth Domain</label><input id="fb_authDomain" placeholder="your-app.firebaseapp.com"></div>
+          <div class="fi-row"><label>Database URL</label><input id="fb_databaseURL" placeholder="https://your-app-default-rtdb.firebaseio.com"></div>
+          <div class="fi-row"><label>Project ID</label><input id="fb_projectId" placeholder="your-app"></div>
+          <div class="fi-row"><label>Storage Bucket</label><input id="fb_storageBucket" placeholder="your-app.appspot.com"></div>
+          <div class="fi-row"><label>Messaging Sender ID</label><input id="fb_messagingSenderId" placeholder="123456789"></div>
+          <div class="fi-row"><label>App ID</label><input id="fb_appId" placeholder="1:123:web:abc"></div>
+          <button class="btn btn-primary btn-sm" style="margin-top:10px;width:100%;" onclick="saveFirebaseConfig()">저장 및 적용</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ ROLE PICKER ════════════════ -->
+<div id="roleOverlay">
+  <div class="role-card">
+    <h2>역할을 선택하세요</h2>
+    <p>처음 로그인 시 역할을 선택합니다<br><small style="color:var(--dim);">관리자 페이지에서 변경 가능</small></p>
+    <div class="role-options">
+      <div class="role-opt" onclick="selectRole('admin')"><div class="ri">👑</div><div class="rl">관리자</div></div>
+      <div class="role-opt" onclick="selectRole('manager')"><div class="ri">🧑‍💼</div><div class="rl">팀장</div></div>
+      <div class="role-opt" onclick="selectRole('member')"><div class="ri">👤</div><div class="rl">팀원</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ APP SCREEN ════════════════ -->
+<div id="appScreen">
+  <!-- SIDEBAR -->
+  <div class="sb">
+    <div class="sb-logo">
+      <div class="logo">🌐 NOVA</div>
+      <div class="school">한국외국어대학교<br>차이나데이터큐레이션전공<br>202404764 김수민</div>
+      <div class="role-badge" id="sbRoleBadge">팀원</div>
+    </div>
+    <div class="sb-nav">
+      <div class="nav-section">대시보드</div>
+      <a class="ni active" href="#sec-kpi" onclick="setActive(this)"><span class="ic">🏠</span>홈 요약</a>
+      <a class="ni" href="#sec-charts" onclick="setActive(this)"><span class="ic">📈</span>업무 현황</a>
+      <div class="nav-section">업무</div>
+      <a class="ni" href="#sec-tasks" onclick="setActive(this)"><span class="ic">📋</span>업무 분장</a>
+      <a class="ni" href="#sec-chat" onclick="setActive(this)"><span class="ic">💬</span>SNS 채팅</a>
+      <a class="ni" href="#sec-postit" onclick="setActive(this)"><span class="ic">🗒️</span>포스트잇</a>
+      <div class="nav-section">분석</div>
+      <a class="ni" href="#sec-analytics" onclick="setActive(this)"><span class="ic">📊</span>결산 분석</a>
+      <a class="ni" href="#sec-calendar" onclick="setActive(this)"><span class="ic">📅</span>캘린더</a>
+      <div class="nav-section">관리</div>
+      <a class="ni" href="#sec-admin" onclick="setActive(this)" id="nav-admin"><span class="ic">👑</span>관리자</a>
+      <a class="ni" href="#sec-settings" onclick="setActive(this)"><span class="ic">⚙️</span>설정</a>
+    </div>
+    <div class="sb-foot">
+      <div class="user-row">
+        <div class="ava" id="sbAva">KS</div>
+        <div class="user-info">
+          <div class="uname" id="sbName">김수민</div>
+          <div class="uemail" id="sbEmail">ksm0381@hufs.ac.kr</div>
+        </div>
+        <button class="logout-btn" onclick="logout()" title="로그아웃">⏻</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div class="topbar-title">업무 종합대시보드</div>
+      <div class="topbar-school">한국외국어대학교 차이나데이터큐레이션전공 | 202404764 김수민</div>
+      <div class="topbar-right">
+        <div class="dot-on"></div>
+        <div class="user-chip"><span id="topUser">김수민</span></div>
+        <div id="topDate" style="font-size:0.75rem;color:var(--muted);"></div>
+      </div>
+    </div>
+
+    <!-- SINGLE SCROLLABLE PAGE -->
+    <div class="page-scroll" id="pageScroll">
+
+      <!-- ① KPI CARDS -->
+      <div class="section-block" id="sec-kpi">
+        <div class="sec-header">
+          <h2>🏠 홈 요약</h2>
+          <span class="sec-badge">실시간</span>
+        </div>
+        <div class="kpi-row">
+          <div class="kpi">
+            <div class="kpi-ic" style="background:rgba(108,99,255,0.15);">✅</div>
+            <div class="kpi-data">
+              <div class="label">완료 업무</div>
+              <div class="val" id="kpi1" style="color:var(--acc);">0</div>
+              <div class="change" style="color:var(--green);">이번 주</div>
+            </div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-ic" style="background:rgba(255,159,67,0.15);">⏳</div>
+            <div class="kpi-data">
+              <div class="label">진행 중</div>
+              <div class="val" id="kpi2" style="color:var(--amber);">0</div>
+              <div class="change" style="color:var(--muted);">현재</div>
+            </div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-ic" style="background:rgba(255,71,87,0.15);">🚨</div>
+            <div class="kpi-data">
+              <div class="label">지연</div>
+              <div class="val" id="kpi3" style="color:var(--red);">0</div>
+              <div class="change" style="color:var(--red);">즉시 확인</div>
+            </div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-ic" style="background:rgba(79,195,247,0.15);">📅</div>
+            <div class="kpi-data">
+              <div class="label">이번 주 일정</div>
+              <div class="val" id="kpi4" style="color:var(--info);">0</div>
+              <div class="change" style="color:var(--muted);">건</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DASH ROW: 업무현황 차트 + 팀원현황 -->
+        <div class="dash-row col-2-1" id="sec-charts">
+          <div class="dash-card">
+            <h3>📈 업무 현황 차트</h3>
+            <div class="chart-box"><canvas id="chartWork"></canvas></div>
+          </div>
+          <div class="dash-card">
+            <h3>👥 팀원 현황</h3>
+            <div class="team-list" id="teamListHome"></div>
+          </div>
+        </div>
+
+        <!-- DASH ROW: 포스트잇 미리보기 + 채팅 미리보기 + 결산 미리보기 -->
+        <div class="dash-row col-3">
+          <div class="dash-card">
+            <h3>🗒️ 포스트잇</h3>
+            <div id="postitPreview" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+          </div>
+          <div class="dash-card">
+            <h3>💬 최근 채팅</h3>
+            <div id="chatPreview" style="display:flex;flex-direction:column;gap:6px;font-size:0.8rem;"></div>
+          </div>
+          <div class="dash-card">
+            <h3>📊 결산 요약</h3>
+            <div class="chart-box" style="height:130px;"><canvas id="chartSummary"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ② 업무 분장 -->
+      <div class="section-block" id="sec-tasks">
+        <div class="sec-header">
+          <h2>📋 업무 분장</h2>
+          <span class="sec-badge">팀원/팀장 공유</span>
+          <button class="btn btn-primary btn-sm" style="margin-left:auto;" onclick="openTaskModal()">+ 업무 추가</button>
+        </div>
+        <div class="dash-card" style="padding:16px;">
+          <div class="task-toolbar">
+            <input class="inp" placeholder="🔍 업무 검색" oninput="filterTasks('search',this.value)" style="width:200px;">
+            <select class="inp" onchange="filterTasks('status',this.value)">
+              <option value="">전체 상태</option>
+              <option value="todo">할 일</option>
+              <option value="progress">진행중</option>
+              <option value="done">완료</option>
+              <option value="delay">지연</option>
+            </select>
+            <select class="inp" onchange="filterTasks('member',this.value)" id="memberFilter">
+              <option value="">전체 담당자</option>
+            </select>
+          </div>
+          <table class="task-table">
+            <thead><tr>
+              <th>업무명</th><th>담당자</th><th>우선순위</th><th>상태</th><th>마감일</th><th>작업</th>
+            </tr></thead>
+            <tbody id="taskBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ③ SNS 채팅 -->
+      <div class="section-block" id="sec-chat">
+        <div class="sec-header">
+          <h2>💬 업무용 SNS 채팅</h2>
+          <span class="sec-badge" id="chatModeBadge">데모</span>
+        </div>
+        <div class="chat-wrap">
+          <div class="chat-rooms">
+            <div class="room-item active" onclick="selectRoom('general',this)">💬 전체 채팅</div>
+            <div class="room-item" onclick="selectRoom('team1',this)">👥 1팀</div>
+            <div class="room-item" onclick="selectRoom('team2',this)">👥 2팀</div>
+            <div class="room-item" onclick="selectRoom('announce',this)">📢 공지</div>
+          </div>
+          <div class="chat-body">
+            <div class="chat-hd" id="chatRoomTitle">💬 전체 채팅</div>
+            <div class="chat-msgs" id="chatMsgs"></div>
+            <div class="chat-input-row">
+              <input class="inp" id="chatInput" placeholder="메시지 입력... (Enter 전송)" onkeydown="chatKeydown(event)">
+              <button class="btn btn-primary btn-sm" onclick="sendChat()">전송</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ④ 포스트잇 -->
+      <div class="section-block" id="sec-postit">
+        <div class="sec-header">
+          <h2>🗒️ 포스트잇</h2>
+          <span class="sec-badge">드래그 가능</span>
+        </div>
+        <div class="postit-toolbar">
+          <span style="font-size:0.82rem;color:var(--muted);">색상:</span>
+          <div class="color-dot sel" style="background:#FFD93D;" data-color="#FFD93D" onclick="selectColor(this)"></div>
+          <div class="color-dot" style="background:#FF9FF3;" data-color="#FF9FF3" onclick="selectColor(this)"></div>
+          <div class="color-dot" style="background:#A8E6CF;" data-color="#A8E6CF" onclick="selectColor(this)"></div>
+          <div class="color-dot" style="background:#74B9FF;" data-color="#74B9FF" onclick="selectColor(this)"></div>
+          <div class="color-dot" style="background:#FDCB6E;" data-color="#FDCB6E" onclick="selectColor(this)"></div>
+          <button class="btn btn-primary btn-sm" onclick="addPostit()">+ 포스트잇 추가</button>
+        </div>
+        <div class="postit-board" id="postitBoard"></div>
+      </div>
+
+      <!-- ⑤ 결산 분석 -->
+      <div class="section-block" id="sec-analytics">
+        <div class="sec-header">
+          <h2>📊 결산 분석</h2>
+          <span class="sec-badge">일일/주간/월간/분기/연간</span>
+          <button class="btn btn-outline btn-sm" style="margin-left:auto;" onclick="downloadCSV()">⬇️ CSV 다운로드</button>
+        </div>
+        <div class="period-tabs">
+          <div class="period-tab active" onclick="setPeriod('daily',this)">일일</div>
+          <div class="period-tab" onclick="setPeriod('weekly',this)">주간</div>
+          <div class="period-tab" onclick="setPeriod('monthly',this)">월간</div>
+          <div class="period-tab" onclick="setPeriod('quarterly',this)">분기</div>
+          <div class="period-tab" onclick="setPeriod('annual',this)">연간</div>
+        </div>
+        <div class="analytics-grid">
+          <div class="a-card">
+            <h3 id="analyticsTitle">일일 업무 결산</h3>
+            <div class="chart-box-lg"><canvas id="chartAnalytics"></canvas></div>
+            <div class="summary-stats" id="analyticsSummary"></div>
+          </div>
+          <div class="a-card">
+            <h3>업무 분포</h3>
+            <div class="chart-box"><canvas id="chartDist"></canvas></div>
+            <!-- 자동 이메일 발송 -->
+            <div class="email-btn-row">
+              <button class="btn btn-primary btn-sm" onclick="sendDailyEmail()" id="emailBtn">📧 일일 결산 이메일 발송</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ⑥ 캘린더 -->
+      <div class="section-block" id="sec-calendar">
+        <div class="sec-header">
+          <h2>📅 캘린더</h2>
+          <button class="btn btn-primary btn-sm" style="margin-left:auto;" onclick="addCalEvent()">+ 일정 추가</button>
+        </div>
+        <div class="dash-card">
+          <div class="cal-nav">
+            <button class="cal-nav-btn" onclick="moveMonth(-1)">◀</button>
+            <h3 id="calTitle"></h3>
+            <button class="cal-nav-btn" onclick="moveMonth(1)">▶</button>
+          </div>
+          <div class="cal-grid" id="calGrid"></div>
+        </div>
+      </div>
+
+      <!-- ⑦ 관리자 -->
+      <div class="section-block" id="sec-admin">
+        <div class="sec-header">
+          <h2>👑 관리자 패널</h2>
+          <span class="sec-badge" id="adminRoleBadge">관리자 전용</span>
+        </div>
+        <div class="admin-card">
+          <h3>팀원 역할 관리</h3>
+          <table class="user-table" id="adminUserTable">
+            <thead><tr><th>이름</th><th>이메일</th><th>현재 역할</th><th>변경</th></tr></thead>
+            <tbody id="adminUserBody"></tbody>
+          </table>
+          <button class="btn btn-primary btn-sm" style="margin-top:12px;" onclick="openAddMemberModal()">+ 팀원 추가</button>
+        </div>
+        <div class="admin-card">
+          <h3>업무 분장 현황 요약</h3>
+          <div class="dash-row col-3" style="margin-bottom:0;">
+            <div class="stat-cell" style="background:var(--card2);border-radius:var(--rs);padding:14px;text-align:center;">
+              <div class="sv" id="adminTotal" style="color:var(--acc);">0</div><div class="sl">전체 업무</div>
+            </div>
+            <div class="stat-cell" style="background:var(--card2);border-radius:var(--rs);padding:14px;text-align:center;">
+              <div class="sv" id="adminDone" style="color:var(--green);">0</div><div class="sl">완료</div>
+            </div>
+            <div class="stat-cell" style="background:var(--card2);border-radius:var(--rs);padding:14px;text-align:center;">
+              <div class="sv" id="adminDelay" style="color:var(--red);">0</div><div class="sl">지연</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ⑧ 설정 -->
+      <div class="section-block" id="sec-settings">
+        <div class="sec-header"><h2>⚙️ 설정</h2></div>
+
+        <div class="set-card">
+          <h3>Firebase 설정 (Google 로그인 / 실시간 채팅)</h3>
+          <div class="set-note">
+            Google 로그인과 실시간 채팅을 사용하려면 Firebase 프로젝트 설정이 필요합니다.<br>
+            <a href="https://console.firebase.google.com" target="_blank" style="color:var(--acc);">Firebase Console</a>
+            → 프로젝트 → 설정 → 앱 추가(웹) → config 복사 후 아래에 입력하세요.
+          </div>
+          <div class="form-grid">
+            <div class="fg"><label>API Key</label><input class="inp" id="set_apiKey" placeholder="AIzaSy..."></div>
+            <div class="fg"><label>Auth Domain</label><input class="inp" id="set_authDomain" placeholder="app.firebaseapp.com"></div>
+            <div class="fg"><label>Database URL</label><input class="inp" id="set_databaseURL" placeholder="https://app-rtdb.firebaseio.com"></div>
+            <div class="fg"><label>Project ID</label><input class="inp" id="set_projectId"></div>
+            <div class="fg"><label>Storage Bucket</label><input class="inp" id="set_storageBucket"></div>
+            <div class="fg"><label>Messaging Sender ID</label><input class="inp" id="set_messagingSenderId"></div>
+            <div class="fg fg-full"><label>App ID</label><input class="inp" id="set_appId"></div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="saveSettings()">저장 및 적용</button>
+          <span id="firebaseStatus" style="margin-left:10px;font-size:0.78rem;color:var(--muted);"></span>
+        </div>
+
+        <div class="set-card">
+          <h3>EmailJS 설정 (일일 결산 자동 이메일)</h3>
+          <div class="set-note">
+            <a href="https://www.emailjs.com" target="_blank" style="color:var(--acc);">EmailJS.com</a>에서 무료 계정 가입 후
+            Service ID, Template ID, Public Key를 입력하세요.<br>
+            템플릿 변수: <code style="color:var(--acc);">{{report}}</code>, <code style="color:var(--acc);">{{date}}</code>, <code style="color:var(--acc);">{{to_email}}</code>
+          </div>
+          <div class="form-grid">
+            <div class="fg"><label>Service ID</label><input class="inp" id="set_ejsService" placeholder="service_xxxxxx"></div>
+            <div class="fg"><label>Template ID</label><input class="inp" id="set_ejsTemplate" placeholder="template_xxxxxx"></div>
+            <div class="fg"><label>Public Key</label><input class="inp" id="set_ejsKey" placeholder="공개 키"></div>
+            <div class="fg"><label>발송 이메일</label><input class="inp" id="set_ejsEmail" placeholder="recipient@email.com"></div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="saveEmailJS()">저장</button>
+        </div>
+
+        <div class="set-card">
+          <h3>프로필</h3>
+          <div class="form-grid">
+            <div class="fg"><label>이름</label><input class="inp" id="set_name" placeholder="이름"></div>
+            <div class="fg"><label>소속/직책</label><input class="inp" id="set_dept" placeholder="부서/직책"></div>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="saveProfile()">저장</button>
+        </div>
+
+        <div style="text-align:center;padding:20px 0;color:var(--muted);font-size:0.75rem;border-top:1px solid var(--border);margin-top:10px;">
+          NOVA 업무 종합대시보드 v2.0 | 한국외국어대학교 차이나데이터큐레이션전공 | 202404764 김수민
+        </div>
+      </div>
+
+    </div><!-- end page-scroll -->
+  </div><!-- end main -->
+</div><!-- end appScreen -->
+
+<!-- TASK MODAL -->
+<div class="modal-ov" id="taskModal">
+  <div class="modal">
+    <h3 id="taskModalTitle">업무 추가</h3>
+    <div class="mfg"><label>업무명 *</label><input class="inp" id="tm_title" placeholder="업무명을 입력하세요"></div>
+    <div class="mfg"><label>담당자</label>
+      <select class="inp" id="tm_assignee"></select>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="mfg"><label>우선순위</label>
+        <select class="inp" id="tm_priority">
+          <option value="high">높음</option><option value="mid" selected>보통</option><option value="low">낮음</option>
+        </select>
+      </div>
+      <div class="mfg"><label>상태</label>
+        <select class="inp" id="tm_status">
+          <option value="todo">할 일</option><option value="progress">진행중</option>
+          <option value="done">완료</option><option value="delay">지연</option>
+        </select>
+      </div>
+    </div>
+    <div class="mfg"><label>마감일</label><input class="inp" id="tm_due" type="date"></div>
+    <div class="mfg"><label>메모</label><textarea class="inp" id="tm_memo" rows="2" style="resize:none;"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closeModal('taskModal')">취소</button>
+      <button class="btn btn-primary btn-sm" onclick="saveTask()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- CALENDAR EVENT MODAL -->
+<div class="modal-ov" id="calModal">
+  <div class="modal">
+    <h3>일정 추가</h3>
+    <div class="mfg"><label>일정명 *</label><input class="inp" id="cal_title" placeholder="일정명"></div>
+    <div class="mfg"><label>날짜</label><input class="inp" id="cal_date" type="date"></div>
+    <div class="mfg"><label>메모</label><input class="inp" id="cal_memo" placeholder="메모"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closeModal('calModal')">취소</button>
+      <button class="btn btn-primary btn-sm" onclick="saveCalEvent()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD MEMBER MODAL -->
+<div class="modal-ov" id="memberModal">
+  <div class="modal">
+    <h3>팀원 추가</h3>
+    <div class="mfg"><label>이름 *</label><input class="inp" id="mm_name" placeholder="이름"></div>
+    <div class="mfg"><label>이메일</label><input class="inp" id="mm_email" placeholder="email@example.com"></div>
+    <div class="mfg"><label>역할</label>
+      <select class="inp" id="mm_role">
+        <option value="member">팀원</option><option value="manager">팀장</option><option value="admin">관리자</option>
+      </select>
+    </div>
+    <div class="mfg"><label>현재 업무</label><input class="inp" id="mm_task" placeholder="담당 업무"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closeModal('memberModal')">취소</button>
+      <button class="btn btn-primary btn-sm" onclick="saveMember()">추가</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+const S = {
+  user: null, role: 'member', demoMode: true,
+  fbApp: null, fbAuth: null, fbDB: null,
+  currentRoom: 'general', currentPeriod: 'daily',
+  selectedColor: '#FFD93D', editTaskId: null,
+  calYear: new Date().getFullYear(), calMonth: new Date().getMonth(),
+  dragging: null, dragOffX: 0, dragOffY: 0
+};
+
+let tasks = [], postits = [], teamMembers = [], chatMessages = {}, calEvents = [];
+let charts = {};
+let taskFilter = { search:'', status:'', member:'' };
+
+// ══════════════════════════════════════════
+// DEMO DATA
+// ══════════════════════════════════════════
+function initDemoData() {
+  teamMembers = [
+    {id:'u1',name:'김수민',email:'ksm0381@hufs.ac.kr',role:'admin',task:'대시보드 개발',status:'busy',color:'#6c63ff'},
+    {id:'u2',name:'이지현',email:'jh@hufs.ac.kr',role:'manager',task:'기획 총괄',status:'online',color:'#ff6b9d'},
+    {id:'u3',name:'박민준',email:'mj@hufs.ac.kr',role:'member',task:'데이터 분석',status:'online',color:'#2ed573'},
+    {id:'u4',name:'최서연',email:'sy@hufs.ac.kr',role:'member',task:'보고서 작성',status:'offline',color:'#ff9f43'},
+  ];
+  tasks = [
+    {id:'t1',title:'대시보드 고도화 개발',assignee:'김수민',priority:'high',status:'progress',due:'2026-05-30',memo:'Firebase 연동 포함'},
+    {id:'t2',title:'월간 결산 보고서 작성',assignee:'이지현',priority:'high',status:'todo',due:'2026-05-31',memo:''},
+    {id:'t3',title:'팀원 업무 현황 분석',assignee:'박민준',priority:'mid',status:'done',due:'2026-05-25',memo:'완료'},
+    {id:'t4',title:'신규 데이터 파이프라인 구축',assignee:'박민준',priority:'mid',status:'delay',due:'2026-05-20',memo:'지연 중'},
+    {id:'t5',title:'분기 실적 자료 취합',assignee:'최서연',priority:'low',status:'todo',due:'2026-06-05',memo:''},
+  ];
+  chatMessages = {
+    general: [
+      {id:'m1',sender:'이지현',text:'안녕하세요! 오늘 대시보드 배포 예정입니다 😊',time:'09:15',me:false},
+      {id:'m2',sender:'박민준',text:'네, 확인했습니다! Railway 배포 준비 완료했어요.',time:'09:20',me:false},
+      {id:'m3',sender:'김수민',text:'좋아요! 오늘 오후에 최종 점검하겠습니다.',time:'09:25',me:true},
+    ],
+    team1: [{id:'m10',sender:'이지현',text:'1팀 회의 오후 3시입니다',time:'10:00',me:false}],
+    team2: [],
+    announce: [{id:'m20',sender:'김수민',text:'📢 이번 주 금요일 전체 결산 회의 있습니다',time:'08:00',me:true}]
+  };
+  postits = [
+    {id:'p1',text:'Firebase 설정 완료하기\n- apiKey 입력\n- Auth 활성화',color:'#FFD93D',x:20,y:20,author:'김수민'},
+    {id:'p2',text:'Railway 배포 URL\n제출 파일에 기록!',color:'#A8E6CF',x:200,y:40,author:'김수민'},
+  ];
+  calEvents = [
+    {id:'e1',title:'대시보드 제출',date:'2026-05-30',memo:'Railway URL 포함'},
+    {id:'e2',title:'월간 결산 회의',date:'2026-05-31',memo:'전체 팀원 참석'},
+    {id:'e3',title:'분기 보고서',date:'2026-06-15',memo:''},
+  ];
+  saveAll();
+}
+
+function saveAll() {
+  localStorage.setItem('nova_tasks', JSON.stringify(tasks));
+  localStorage.setItem('nova_postits', JSON.stringify(postits));
+  localStorage.setItem('nova_team', JSON.stringify(teamMembers));
+  localStorage.setItem('nova_chat', JSON.stringify(chatMessages));
+  localStorage.setItem('nova_cal', JSON.stringify(calEvents));
+}
+
+function loadAll() {
+  const t = localStorage.getItem('nova_tasks');
+  const p = localStorage.getItem('nova_postits');
+  const tm = localStorage.getItem('nova_team');
+  const cm = localStorage.getItem('nova_chat');
+  const ce = localStorage.getItem('nova_cal');
+  if(t) tasks = JSON.parse(t);
+  if(p) postits = JSON.parse(p);
+  if(tm) teamMembers = JSON.parse(tm);
+  if(cm) chatMessages = JSON.parse(cm);
+  if(ce) calEvents = JSON.parse(ce);
+}
+
+// ══════════════════════════════════════════
+// FIREBASE CONFIG
+// ══════════════════════════════════════════
+function getStoredFBConfig() {
+  const raw = localStorage.getItem('nova_fbConfig');
+  return raw ? JSON.parse(raw) : {};
+}
+
+function saveFirebaseConfig() {
+  const cfg = {
+    apiKey: document.getElementById('fb_apiKey').value.trim(),
+    authDomain: document.getElementById('fb_authDomain').value.trim(),
+    databaseURL: document.getElementById('fb_databaseURL').value.trim(),
+    projectId: document.getElementById('fb_projectId').value.trim(),
+    storageBucket: document.getElementById('fb_storageBucket').value.trim(),
+    messagingSenderId: document.getElementById('fb_messagingSenderId').value.trim(),
+    appId: document.getElementById('fb_appId').value.trim(),
+  };
+  if(!cfg.apiKey){ showToast('API Key를 입력하세요','error'); return; }
+  localStorage.setItem('nova_fbConfig', JSON.stringify(cfg));
+  updateFBStatus();
+  showToast('Firebase 설정이 저장되었습니다. Google 로그인 버튼을 클릭하세요.','info');
+}
+
+function updateFBStatus() {
+  const cfg = getStoredFBConfig();
+  const badge = document.getElementById('fbStatusBadge');
+  if(badge) {
+    if(cfg.apiKey) { badge.textContent='● 설정됨'; badge.className='fb-status ok'; }
+    else { badge.textContent='● 미설정'; badge.className='fb-status no'; }
+  }
+}
+
+function toggleFBSetup() {
+  const body = document.getElementById('fbSetupBody');
+  body.classList.toggle('open');
+  // Pre-fill if stored
+  const cfg = getStoredFBConfig();
+  if(cfg.apiKey) {
+    document.getElementById('fb_apiKey').value = cfg.apiKey||'';
+    document.getElementById('fb_authDomain').value = cfg.authDomain||'';
+    document.getElementById('fb_databaseURL').value = cfg.databaseURL||'';
+    document.getElementById('fb_projectId').value = cfg.projectId||'';
+    document.getElementById('fb_storageBucket').value = cfg.storageBucket||'';
+    document.getElementById('fb_messagingSenderId').value = cfg.messagingSenderId||'';
+    document.getElementById('fb_appId').value = cfg.appId||'';
+  }
+}
+
+function initFirebase(cfg) {
+  try {
+    if(S.fbApp) return true; // already initialized
+    S.fbApp = firebase.initializeApp(cfg);
+    S.fbAuth = firebase.auth();
+    if(cfg.databaseURL) {
+      S.fbDB = firebase.database();
+    }
+    return true;
+  } catch(e) {
+    console.error('Firebase init error:', e);
+    return false;
+  }
+}
+
+// ══════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════
+function loginWithGoogle() {
+  const cfg = getStoredFBConfig();
+  if(!cfg.apiKey) {
+    showToast('먼저 Firebase 설정을 입력하고 저장하세요 ↓','error');
+    document.getElementById('fbSetupBody').classList.add('open');
+    return;
+  }
+  const ok = initFirebase(cfg);
+  if(!ok) { showToast('Firebase 초기화 실패. 설정을 확인하세요.','error'); return; }
+
+  const provider = new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+
+  S.fbAuth.signInWithPopup(provider)
+    .then(result => {
+      const u = result.user;
+      S.user = { name: u.displayName||'사용자', email: u.email, uid: u.uid, photo: u.photoURL };
+      S.demoMode = false;
+      loadAll();
+      if(!teamMembers.length) initDemoData();
+      // Setup realtime chat if DB available
+      if(S.fbDB) setupFirebaseChat();
+      afterLogin();
+    })
+    .catch(e => {
+      showToast('Google 로그인 실패: ' + e.message, 'error');
+      console.error(e);
+    });
+}
+
+function loginDemo() {
+  S.user = {name:'김수민', email:'ksm0381@hufs.ac.kr', uid:'demo', photo:null};
+  S.demoMode = true;
+  loadAll();
+  if(!teamMembers.length) initDemoData();
+  afterLogin();
+}
+
+function afterLogin() {
+  const savedRole = localStorage.getItem('nova_role');
+  if(savedRole) { S.role = savedRole; showApp(); }
+  else { document.getElementById('roleOverlay').classList.add('show'); }
+}
+
+function selectRole(r) {
+  S.role = r;
+  localStorage.setItem('nova_role', r);
+  document.getElementById('roleOverlay').classList.remove('show');
+  showApp();
+}
+
+function showApp() {
+  document.getElementById('loginScreen').style.display = 'none';
+  const app = document.getElementById('appScreen');
+  app.classList.add('show');
+
+  // Update sidebar
+  const rLabel = {admin:'👑 관리자', manager:'🧑‍💼 팀장', member:'👤 팀원'};
+  document.getElementById('sbRoleBadge').textContent = rLabel[S.role]||'팀원';
+  document.getElementById('sbName').textContent = S.user.name;
+  document.getElementById('sbEmail').textContent = S.user.email;
+  document.getElementById('sbAva').textContent = S.user.name.substring(0,2);
+  document.getElementById('topUser').textContent = S.user.name;
+
+  // Hide admin nav for plain members
+  if(S.role === 'member') {
+    document.getElementById('nav-admin').style.display = 'none';
+  }
+
+  loadSettingsInputs();
+  initEmailJSIfConfigured();
+  updateTopDate();
+  renderAll();
+}
+
+function logout() {
+  if(S.fbAuth) S.fbAuth.signOut().catch(()=>{});
+  S.user=null; S.role='member'; S.fbApp=null; S.fbAuth=null; S.fbDB=null;
+  localStorage.removeItem('nova_role');
+  document.getElementById('appScreen').classList.remove('show');
+  document.getElementById('loginScreen').style.display='flex';
+  Object.values(charts).forEach(c=>{ if(c&&c.destroy) c.destroy(); });
+  charts={};
+}
+
+// ══════════════════════════════════════════
+// FIREBASE REALTIME CHAT
+// ══════════════════════════════════════════
+function setupFirebaseChat() {
+  if(!S.fbDB) return;
+  document.getElementById('chatModeBadge').textContent = 'Firebase 실시간';
+  document.getElementById('chatModeBadge').style.background = 'rgba(46,213,115,0.15)';
+  document.getElementById('chatModeBadge').style.color = 'var(--green)';
+  // Listen on current room
+  listenRoom(S.currentRoom);
+}
+
+function listenRoom(room) {
+  if(!S.fbDB) return;
+  S.fbDB.ref('chat/'+room).on('value', snap => {
+    const data = snap.val()||{};
+    const msgs = Object.values(data).sort((a,b)=>a.ts-b.ts);
+    chatMessages[room] = msgs.map(m=>({...m, me: m.uid===S.user.uid}));
+    if(S.currentRoom===room) renderChatMessages(room);
+  });
+}
+
+// ══════════════════════════════════════════
+// RENDER ALL
+// ══════════════════════════════════════════
+function renderAll() {
+  updateKPI();
+  renderTeamHome();
+  renderPostitPreview();
+  renderChatPreview();
+  renderSummaryChart();
+  renderTaskTable();
+  populateMemberFilter();
+  renderChatMessages(S.currentRoom);
+  renderPostits();
+  renderAnalytics();
+  renderCalendar();
+  renderAdmin();
+}
+
+// ══════════════════════════════════════════
+// KPI
+// ══════════════════════════════════════════
+function updateKPI() {
+  const done = tasks.filter(t=>t.status==='done').length;
+  const prog = tasks.filter(t=>t.status==='progress').length;
+  const delay = tasks.filter(t=>t.status==='delay').length;
+  const now = new Date();
+  const weekEnd = new Date(now); weekEnd.setDate(now.getDate()+(6-now.getDay()));
+  const thisWeekEvts = calEvents.filter(e=>{
+    const d = new Date(e.date);
+    return d>=now && d<=weekEnd;
+  }).length;
+  document.getElementById('kpi1').textContent = done;
+  document.getElementById('kpi2').textContent = prog;
+  document.getElementById('kpi3').textContent = delay;
+  document.getElementById('kpi4').textContent = thisWeekEvts;
+
+  // Work chart
+  if(charts.work) charts.work.destroy();
+  const ctx = document.getElementById('chartWork').getContext('2d');
+  const memberNames = teamMembers.map(m=>m.name);
+  const doneCounts = memberNames.map(n=>tasks.filter(t=>t.assignee===n&&t.status==='done').length);
+  const progCounts = memberNames.map(n=>tasks.filter(t=>t.assignee===n&&t.status==='progress').length);
+  const delayCounts = memberNames.map(n=>tasks.filter(t=>t.assignee===n&&t.status==='delay').length);
+  charts.work = new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels: memberNames,
+      datasets:[
+        {label:'완료',data:doneCounts,backgroundColor:'rgba(46,213,115,0.7)',borderRadius:4},
+        {label:'진행중',data:progCounts,backgroundColor:'rgba(108,99,255,0.7)',borderRadius:4},
+        {label:'지연',data:delayCounts,backgroundColor:'rgba(255,71,87,0.7)',borderRadius:4},
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#7a84a8',font:{size:11}}}},
+      scales:{
+        x:{ticks:{color:'#7a84a8'},grid:{color:'rgba(42,48,80,0.5)'}},
+        y:{ticks:{color:'#7a84a8',stepSize:1},grid:{color:'rgba(42,48,80,0.5)'}}
+      }
+    }
+  });
+
+  // Admin stats
+  document.getElementById('adminTotal').textContent = tasks.length;
+  document.getElementById('adminDone').textContent = done;
+  document.getElementById('adminDelay').textContent = delay;
+}
+
+function renderTeamHome() {
+  const el = document.getElementById('teamListHome');
+  el.innerHTML = teamMembers.slice(0,4).map(m=>`
+    <div class="team-row">
+      <div class="team-ava" style="background:${m.color||'var(--acc)'};">${m.name.substring(0,2)}</div>
+      <div class="team-info">
+        <div class="team-name">${m.name}</div>
+        <div class="team-task">${m.task||'미배정'}</div>
+      </div>
+      <span class="status-pill ${m.status==='online'?'sp-on':m.status==='busy'?'sp-busy':'sp-off'}">${m.status==='online'?'온라인':m.status==='busy'?'바쁨':'오프라인'}</span>
+    </div>`).join('');
+}
+
+function renderPostitPreview() {
+  const el = document.getElementById('postitPreview');
+  el.innerHTML = postits.slice(0,3).map(p=>`
+    <div style="width:80px;height:65px;border-radius:6px;background:${p.color};padding:7px;font-size:0.65rem;color:#333;overflow:hidden;line-height:1.4;">${p.text.substring(0,50)}</div>
+  `).join('');
+}
+
+function renderChatPreview() {
+  const el = document.getElementById('chatPreview');
+  const msgs = (chatMessages['general']||[]).slice(-3);
+  el.innerHTML = msgs.map(m=>`
+    <div style="display:flex;align-items:flex-start;gap:6px;">
+      <div style="width:22px;height:22px;border-radius:50%;background:var(--acc);display:flex;align-items:center;justify-content:center;font-size:0.65rem;color:#fff;flex-shrink:0;">${m.sender.substring(0,2)}</div>
+      <div><div style="font-size:0.68rem;color:var(--muted);">${m.sender}</div><div style="font-size:0.78rem;">${m.text.substring(0,30)}${m.text.length>30?'...':''}</div></div>
+    </div>`).join('');
+}
+
+function renderSummaryChart() {
+  if(charts.summary) charts.summary.destroy();
+  const ctx = document.getElementById('chartSummary').getContext('2d');
+  const done=tasks.filter(t=>t.status==='done').length;
+  const prog=tasks.filter(t=>t.status==='progress').length;
+  const delay=tasks.filter(t=>t.status==='delay').length;
+  const todo=tasks.filter(t=>t.status==='todo').length;
+  charts.summary = new Chart(ctx,{
+    type:'doughnut',
+    data:{
+      labels:['완료','진행중','지연','할 일'],
+      datasets:[{data:[done,prog,delay,todo],backgroundColor:['#2ed573','#6c63ff','#ff4757','#ff9f43'],borderWidth:0}]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#7a84a8',font:{size:10},boxWidth:10}}}
+    }
+  });
+}
+
+// ══════════════════════════════════════════
+// TASKS
+// ══════════════════════════════════════════
+const BADGE={done:'b-done',progress:'b-prog',delay:'b-delay',todo:'b-todo'};
+const LABEL={done:'완료',progress:'진행중',delay:'지연',todo:'할 일'};
+const PRIO={high:'<span style="color:var(--red);font-weight:600;">높음</span>',mid:'<span style="color:var(--amber);">보통</span>',low:'<span style="color:var(--green);">낮음</span>'};
+
+function populateMemberFilter() {
+  const sel = document.getElementById('memberFilter');
+  sel.innerHTML = '<option value="">전체 담당자</option>';
+  teamMembers.forEach(m=>{ sel.innerHTML+=`<option value="${m.name}">${m.name}</option>`; });
+}
+
+function filterTasks(type, val) {
+  taskFilter[type] = val;
+  renderTaskTable();
+}
+
+function renderTaskTable() {
+  let filtered = tasks.filter(t=>{
+    if(taskFilter.search && !t.title.toLowerCase().includes(taskFilter.search.toLowerCase())) return false;
+    if(taskFilter.status && t.status!==taskFilter.status) return false;
+    if(taskFilter.member && t.assignee!==taskFilter.member) return false;
+    return true;
+  });
+  const tbody = document.getElementById('taskBody');
+  if(!filtered.length){ tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px;">업무가 없습니다</td></tr>'; return; }
+  tbody.innerHTML = filtered.map(t=>`
+    <tr>
+      <td style="font-weight:500;">${t.title}</td>
+      <td>${t.assignee}</td>
+      <td>${PRIO[t.priority]||t.priority}</td>
+      <td><span class="badge ${BADGE[t.status]}">${LABEL[t.status]}</span></td>
+      <td style="color:var(--muted);">${t.due||'-'}</td>
+      <td>
+        <button class="btn btn-outline btn-sm" onclick="openTaskModal('${t.id}')" style="margin-right:4px;">수정</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteTask('${t.id}')">삭제</button>
+      </td>
+    </tr>`).join('');
+}
+
+function openTaskModal(id) {
+  S.editTaskId = id||null;
+  const sel = document.getElementById('tm_assignee');
+  sel.innerHTML = teamMembers.map(m=>`<option value="${m.name}">${m.name}</option>`).join('');
+  if(id) {
+    const t = tasks.find(x=>x.id===id);
+    if(t){
+      document.getElementById('taskModalTitle').textContent='업무 수정';
+      document.getElementById('tm_title').value=t.title;
+      sel.value=t.assignee;
+      document.getElementById('tm_priority').value=t.priority;
+      document.getElementById('tm_status').value=t.status;
+      document.getElementById('tm_due').value=t.due||'';
+      document.getElementById('tm_memo').value=t.memo||'';
+    }
+  } else {
+    document.getElementById('taskModalTitle').textContent='업무 추가';
+    document.getElementById('tm_title').value='';
+    document.getElementById('tm_priority').value='mid';
+    document.getElementById('tm_status').value='todo';
+    document.getElementById('tm_due').value='';
+    document.getElementById('tm_memo').value='';
+  }
+  document.getElementById('taskModal').classList.add('show');
+}
+
+function saveTask() {
+  const title = document.getElementById('tm_title').value.trim();
+  if(!title){ showToast('업무명을 입력하세요','error'); return; }
+  const data = {
+    title, assignee: document.getElementById('tm_assignee').value,
+    priority: document.getElementById('tm_priority').value,
+    status: document.getElementById('tm_status').value,
+    due: document.getElementById('tm_due').value,
+    memo: document.getElementById('tm_memo').value
+  };
+  if(S.editTaskId) {
+    const idx = tasks.findIndex(t=>t.id===S.editTaskId);
+    if(idx>=0) tasks[idx]={...tasks[idx],...data};
+  } else {
+    tasks.push({id:'t'+Date.now(),...data});
+  }
+  saveAll(); closeModal('taskModal'); renderTaskTable(); updateKPI(); renderSummaryChart();
+  showToast('업무가 저장되었습니다');
+}
+
+function deleteTask(id) {
+  if(!confirm('업무를 삭제하시겠습니까?')) return;
+  tasks = tasks.filter(t=>t.id!==id);
+  saveAll(); renderTaskTable(); updateKPI(); renderSummaryChart();
+  showToast('삭제되었습니다');
+}
+
+// ══════════════════════════════════════════
+// CHAT
+// ══════════════════════════════════════════
+function selectRoom(room, el) {
+  S.currentRoom = room;
+  document.querySelectorAll('.room-item').forEach(r=>r.classList.remove('active'));
+  if(el) el.classList.add('active');
+  const titles={general:'💬 전체 채팅',team1:'👥 1팀',team2:'👥 2팀',announce:'📢 공지'};
+  document.getElementById('chatRoomTitle').textContent = titles[room]||room;
+  if(S.fbDB) listenRoom(room);
+  else renderChatMessages(room);
+}
+
+function renderChatMessages(room) {
+  const container = document.getElementById('chatMsgs');
+  container.innerHTML = '';
+  const msgs = chatMessages[room]||[];
+  msgs.forEach(m=>appendBubble(m,false));
+  container.scrollTop = container.scrollHeight;
+}
+
+function appendBubble(m, scroll=true) {
+  const container = document.getElementById('chatMsgs');
+  const div = document.createElement('div');
+  div.className = 'bubble '+(m.me?'me':'other');
+  div.innerHTML = `${!m.me?`<div class="b-name">${m.sender}</div>`:''}
+    <div class="b-text">${escapeHtml(m.text)}</div>
+    <div class="b-time">${m.time}</div>`;
+  container.appendChild(div);
+  if(scroll) container.scrollTop = container.scrollHeight;
+}
+
+function chatKeydown(e) { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();} }
+
+function sendChat() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if(!text) return;
+  const now = new Date();
+  const time = now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+  const msg = {id:'m'+Date.now(), sender:S.user.name, text, time, me:true, uid:S.user.uid, ts:Date.now()};
+  if(!chatMessages[S.currentRoom]) chatMessages[S.currentRoom]=[];
+  chatMessages[S.currentRoom].push(msg);
+  saveAll();
+  appendBubble(msg,true);
+  input.value='';
+  // Firebase push
+  if(S.fbDB) {
+    try{ S.fbDB.ref('chat/'+S.currentRoom).push({...msg,me:false}); }catch(e){}
+  }
+  renderChatPreview();
+}
+
+// ══════════════════════════════════════════
+// POSTIT
+// ══════════════════════════════════════════
+function selectColor(el) {
+  document.querySelectorAll('.color-dot').forEach(d=>d.classList.remove('sel'));
+  el.classList.add('sel');
+  S.selectedColor = el.dataset.color;
+}
+
+function addPostit() {
+  const id = 'p'+Date.now();
+  const board = document.getElementById('postitBoard');
+  const rect = board.getBoundingClientRect();
+  postits.push({id, text:'새 메모', color:S.selectedColor, x:Math.random()*300+20, y:Math.random()*200+20, author:S.user.name});
+  saveAll();
+  renderPostits();
+}
+
+function renderPostits() {
+  const board = document.getElementById('postitBoard');
+  board.innerHTML = '';
+  postits.forEach(p=>{
+    const div = document.createElement('div');
+    div.className = 'postit';
+    div.id = 'postit_'+p.id;
+    div.style.cssText = `left:${p.x}px;top:${p.y}px;background:${p.color};`;
+    div.innerHTML = `
+      <textarea onblur="updatePostitText('${p.id}',this.value)">${p.text}</textarea>
+      <div class="p-footer">
+        <span class="p-author">${p.author||''}</span>
+        <button class="p-del" onclick="deletePostit('${p.id}')">✕</button>
+      </div>`;
+    div.addEventListener('mousedown', e=>startDrag(e,p.id));
+    board.appendChild(div);
+  });
+  renderPostitPreview();
+}
+
+function updatePostitText(id, val) {
+  const p = postits.find(x=>x.id===id);
+  if(p){ p.text=val; saveAll(); renderPostitPreview(); }
+}
+
+function deletePostit(id) {
+  postits = postits.filter(p=>p.id!==id);
+  saveAll(); renderPostits();
+}
+
+function startDrag(e, id) {
+  if(e.target.tagName==='TEXTAREA'||e.target.tagName==='BUTTON') return;
+  const el = document.getElementById('postit_'+id);
+  const rect = el.getBoundingClientRect();
+  const boardRect = document.getElementById('postitBoard').getBoundingClientRect();
+  S.dragging = id;
+  S.dragOffX = e.clientX - rect.left;
+  S.dragOffY = e.clientY - rect.top;
+  el.style.zIndex = 99;
+  e.preventDefault();
+}
+
+document.addEventListener('mousemove', e=>{
+  if(!S.dragging) return;
+  const el = document.getElementById('postit_'+S.dragging);
+  const board = document.getElementById('postitBoard');
+  const boardRect = board.getBoundingClientRect();
+  const x = e.clientX - boardRect.left - S.dragOffX;
+  const y = e.clientY - boardRect.top - S.dragOffY;
+  el.style.left = Math.max(0,x)+'px';
+  el.style.top = Math.max(0,y)+'px';
+});
+document.addEventListener('mouseup', ()=>{
+  if(!S.dragging) return;
+  const el = document.getElementById('postit_'+S.dragging);
+  const p = postits.find(x=>x.id===S.dragging);
+  if(p&&el){ p.x=parseInt(el.style.left)||0; p.y=parseInt(el.style.top)||0; saveAll(); }
+  if(el) el.style.zIndex='';
+  S.dragging = null;
+});
+
+// ══════════════════════════════════════════
+// ANALYTICS
+// ══════════════════════════════════════════
+const PERIOD_DATA = {
+  daily: {
+    labels:['09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00'],
+    data:[2,4,6,5,3,7,8,6,5,4], type:'line', title:'일일 업무 처리 현황',
+    stats:[{l:'처리 건수',v:'50',c:'var(--acc)'},{l:'완료율',v:'78%',c:'var(--green)'},{l:'평균 시간',v:'45분',c:'var(--amber)'}]
+  },
+  weekly: {
+    labels:['월','화','수','목','금','토','일'],
+    data:[8,12,10,15,11,4,2], type:'bar', title:'주간 업무 현황',
+    stats:[{l:'총 처리',v:'62건',c:'var(--acc)'},{l:'완료율',v:'82%',c:'var(--green)'},{l:'목표달성',v:'115%',c:'var(--amber)'}]
+  },
+  monthly: {
+    labels:['1주','2주','3주','4주','5주'],
+    data:[24,31,28,35,20], type:'bar', title:'월간 업무 현황',
+    stats:[{l:'총 처리',v:'138건',c:'var(--acc)'},{l:'완료율',v:'85%',c:'var(--green)'},{l:'성장률',v:'+12%',c:'var(--amber)'}]
+  },
+  quarterly: {
+    labels:['1월','2월','3월','4월','5월','6월'],
+    data:[45,52,48,60,58,55], type:'bar', title:'분기 업무 현황',
+    stats:[{l:'총 처리',v:'318건',c:'var(--acc)'},{l:'완료율',v:'88%',c:'var(--green)'},{l:'전분기比',v:'+18%',c:'var(--amber)'}]
+  },
+  annual: {
+    labels:['1Q','2Q','3Q','4Q'],
+    data:[180,210,195,240], type:'bar', title:'연간 업무 현황',
+    stats:[{l:'연간 총계',v:'825건',c:'var(--acc)'},{l:'완료율',v:'90%',c:'var(--green)'},{l:'전년比',v:'+22%',c:'var(--amber)'}]
+  }
+};
+
+function setPeriod(period, el) {
+  S.currentPeriod = period;
+  document.querySelectorAll('.period-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderAnalytics();
+}
+
+function renderAnalytics() {
+  const d = PERIOD_DATA[S.currentPeriod];
+  document.getElementById('analyticsTitle').textContent = d.title;
+  // Main chart
+  if(charts.analytics) charts.analytics.destroy();
+  const ctx1 = document.getElementById('chartAnalytics').getContext('2d');
+  charts.analytics = new Chart(ctx1,{
+    type: d.type,
+    data:{
+      labels:d.labels,
+      datasets:[{label:'업무 건수',data:d.data,
+        backgroundColor: d.type==='line'?'rgba(108,99,255,0.2)':'rgba(108,99,255,0.7)',
+        borderColor:'#6c63ff',borderWidth:2,fill:d.type==='line',tension:0.4,borderRadius:d.type==='bar'?4:0
+      }]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#7a84a8',font:{size:11}}}},
+      scales:{
+        x:{ticks:{color:'#7a84a8'},grid:{color:'rgba(42,48,80,0.4)'}},
+        y:{ticks:{color:'#7a84a8'},grid:{color:'rgba(42,48,80,0.4)'}}
+      }
+    }
+  });
+  // Stats
+  document.getElementById('analyticsSummary').innerHTML = d.stats.map(s=>`
+    <div class="stat-cell"><div class="sv" style="color:${s.c};">${s.v}</div><div class="sl">${s.l}</div></div>`).join('');
+  // Distribution chart
+  if(charts.dist) charts.dist.destroy();
+  const ctx2 = document.getElementById('chartDist').getContext('2d');
+  const done=tasks.filter(t=>t.status==='done').length;
+  const prog=tasks.filter(t=>t.status==='progress').length;
+  const delay=tasks.filter(t=>t.status==='delay').length;
+  const todo=tasks.filter(t=>t.status==='todo').length;
+  charts.dist = new Chart(ctx2,{
+    type:'doughnut',
+    data:{labels:['완료','진행중','지연','할 일'],datasets:[{data:[done||1,prog||1,delay||0,todo||1],backgroundColor:['#2ed573','#6c63ff','#ff4757','#ff9f43'],borderWidth:0}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#7a84a8',font:{size:10},boxWidth:10}}}}
+  });
+}
+
+function downloadCSV() {
+  const d = PERIOD_DATA[S.currentPeriod];
+  let csv = '기간,업무건수\n';
+  d.labels.forEach((l,i)=>{ csv+=`${l},${d.data[i]}\n`; });
+  const blob = new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download=`결산_${S.currentPeriod}_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click(); URL.revokeObjectURL(url);
+  showToast('CSV 다운로드 완료');
+}
+
+// ══════════════════════════════════════════
+// EMAIL (EmailJS)
+// ══════════════════════════════════════════
+function initEmailJSIfConfigured() {
+  const cfg = JSON.parse(localStorage.getItem('nova_ejsCfg')||'{}');
+  if(cfg.key) { try{ emailjs.init(cfg.key); }catch(e){} }
+}
+
+function sendDailyEmail() {
+  const cfg = JSON.parse(localStorage.getItem('nova_ejsCfg')||'{}');
+  if(!cfg.service||!cfg.template||!cfg.key||!cfg.email){
+    showToast('EmailJS 설정을 먼저 완료하세요 (⚙️ 설정 탭)','error');
+    document.getElementById('sec-settings').scrollIntoView({behavior:'smooth'});
+    return;
+  }
+  const done=tasks.filter(t=>t.status==='done').length;
+  const prog=tasks.filter(t=>t.status==='progress').length;
+  const delay=tasks.filter(t=>t.status==='delay').length;
+  const today=new Date().toLocaleDateString('ko-KR');
+  const report=`[일일 결산 보고 - ${today}]\n\n완료: ${done}건\n진행중: ${prog}건\n지연: ${delay}건\n\n상세:\n${tasks.map(t=>`- ${t.title} (${t.assignee}) [${LABEL[t.status]}]`).join('\n')}`;
+  emailjs.send(cfg.service, cfg.template, {report, date:today, to_email:cfg.email})
+    .then(()=>showToast('📧 이메일 발송 완료!','info'))
+    .catch(e=>showToast('발송 실패: '+e.text,'error'));
+}
+
+// ══════════════════════════════════════════
+// CALENDAR
+// ══════════════════════════════════════════
+function renderCalendar() {
+  const months=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  document.getElementById('calTitle').textContent = `${S.calYear}년 ${months[S.calMonth]}`;
+  const grid = document.getElementById('calGrid');
+  const days=['일','월','화','수','목','금','토'];
+  let html = days.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  const first = new Date(S.calYear, S.calMonth, 1).getDay();
+  const daysInMonth = new Date(S.calYear, S.calMonth+1, 0).getDate();
+  const daysInPrev = new Date(S.calYear, S.calMonth, 0).getDate();
+  const today = new Date();
+  // Prev month tail
+  for(let i=first-1;i>=0;i--) html+=`<div class="cal-cell other-m"><div class="cal-dn">${daysInPrev-i}</div></div>`;
+  // Current month
+  for(let d=1;d<=daysInMonth;d++){
+    const isToday=today.getFullYear()===S.calYear&&today.getMonth()===S.calMonth&&today.getDate()===d;
+    const dateStr=`${S.calYear}-${String(S.calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const evts = calEvents.filter(e=>e.date===dateStr);
+    html+=`<div class="cal-cell${isToday?' today':''}">
+      <div class="cal-dn">${d}</div>
+      ${evts.map(e=>`<div class="cal-ev">${e.title}</div>`).join('')}
+    </div>`;
+  }
+  // Next month head
+  const total=first+daysInMonth; const rem=(7-total%7)%7;
+  for(let d=1;d<=rem;d++) html+=`<div class="cal-cell other-m"><div class="cal-dn">${d}</div></div>`;
+  grid.innerHTML=html;
+}
+
+function moveMonth(d) { S.calMonth+=d; if(S.calMonth>11){S.calMonth=0;S.calYear++;} if(S.calMonth<0){S.calMonth=11;S.calYear--;} renderCalendar(); }
+
+function addCalEvent() {
+  document.getElementById('cal_title').value='';
+  document.getElementById('cal_date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('cal_memo').value='';
+  document.getElementById('calModal').classList.add('show');
+}
+
+function saveCalEvent() {
+  const title=document.getElementById('cal_title').value.trim();
+  if(!title){showToast('일정명을 입력하세요','error');return;}
+  calEvents.push({id:'e'+Date.now(),title,date:document.getElementById('cal_date').value,memo:document.getElementById('cal_memo').value});
+  saveAll(); closeModal('calModal'); renderCalendar(); updateKPI();
+  showToast('일정이 추가되었습니다');
+}
+
+// ══════════════════════════════════════════
+// ADMIN
+// ══════════════════════════════════════════
+function renderAdmin() {
+  const tbody=document.getElementById('adminUserBody');
+  const rLabel={admin:'👑 관리자',manager:'🧑‍💼 팀장',member:'👤 팀원'};
+  tbody.innerHTML=teamMembers.map(m=>`
+    <tr>
+      <td>${m.name}</td>
+      <td style="color:var(--muted);">${m.email}</td>
+      <td>${rLabel[m.role]||'팀원'}</td>
+      <td>
+        <select class="inp" style="padding:4px 8px;font-size:0.78rem;" onchange="changeRole('${m.id}',this.value)">
+          <option value="member" ${m.role==='member'?'selected':''}>팀원</option>
+          <option value="manager" ${m.role==='manager'?'selected':''}>팀장</option>
+          <option value="admin" ${m.role==='admin'?'selected':''}>관리자</option>
+        </select>
+      </td>
+    </tr>`).join('');
+}
+
+function changeRole(id, role) {
+  const m=teamMembers.find(x=>x.id===id);
+  if(m){m.role=role;saveAll();showToast(`${m.name}의 역할이 변경되었습니다`);}
+}
+
+function openAddMemberModal() {
+  document.getElementById('mm_name').value='';
+  document.getElementById('mm_email').value='';
+  document.getElementById('mm_role').value='member';
+  document.getElementById('mm_task').value='';
+  document.getElementById('memberModal').classList.add('show');
+}
+
+function saveMember() {
+  const name=document.getElementById('mm_name').value.trim();
+  if(!name){showToast('이름을 입력하세요','error');return;}
+  const colors=['#6c63ff','#ff6b9d','#2ed573','#ff9f43','#4fc3f7','#a29bfe'];
+  teamMembers.push({id:'u'+Date.now(),name,email:document.getElementById('mm_email').value,role:document.getElementById('mm_role').value,task:document.getElementById('mm_task').value,status:'online',color:colors[Math.floor(Math.random()*colors.length)]});
+  saveAll();closeModal('memberModal');renderAdmin();renderTeamHome();populateMemberFilter();
+  showToast('팀원이 추가되었습니다');
+}
+
+// ══════════════════════════════════════════
+// SETTINGS
+// ══════════════════════════════════════════
+function loadSettingsInputs() {
+  const cfg=getStoredFBConfig();
+  if(cfg.apiKey){
+    document.getElementById('set_apiKey').value=cfg.apiKey||'';
+    document.getElementById('set_authDomain').value=cfg.authDomain||'';
+    document.getElementById('set_databaseURL').value=cfg.databaseURL||'';
+    document.getElementById('set_projectId').value=cfg.projectId||'';
+    document.getElementById('set_storageBucket').value=cfg.storageBucket||'';
+    document.getElementById('set_messagingSenderId').value=cfg.messagingSenderId||'';
+    document.getElementById('set_appId').value=cfg.appId||'';
+    document.getElementById('firebaseStatus').textContent='✅ Firebase 설정됨';
+  }
+  const ejs=JSON.parse(localStorage.getItem('nova_ejsCfg')||'{}');
+  document.getElementById('set_ejsService').value=ejs.service||'';
+  document.getElementById('set_ejsTemplate').value=ejs.template||'';
+  document.getElementById('set_ejsKey').value=ejs.key||'';
+  document.getElementById('set_ejsEmail').value=ejs.email||'';
+  document.getElementById('set_name').value=S.user?.name||'';
+}
+
+function saveSettings() {
+  const cfg={
+    apiKey:document.getElementById('set_apiKey').value.trim(),
+    authDomain:document.getElementById('set_authDomain').value.trim(),
+    databaseURL:document.getElementById('set_databaseURL').value.trim(),
+    projectId:document.getElementById('set_projectId').value.trim(),
+    storageBucket:document.getElementById('set_storageBucket').value.trim(),
+    messagingSenderId:document.getElementById('set_messagingSenderId').value.trim(),
+    appId:document.getElementById('set_appId').value.trim()
+  };
+  localStorage.setItem('nova_fbConfig',JSON.stringify(cfg));
+  updateFBStatus();
+  // Sync to login page
+  const status=document.getElementById('firebaseStatus');
+  if(status) status.textContent='✅ Firebase 설정됨';
+  showToast('Firebase 설정 저장완료','info');
+  // Try to init if not yet
+  if(!S.fbApp&&cfg.apiKey){
+    initFirebase(cfg);
+    if(S.fbDB) setupFirebaseChat();
+  }
+}
+
+function saveEmailJS() {
+  const cfg={service:document.getElementById('set_ejsService').value.trim(),template:document.getElementById('set_ejsTemplate').value.trim(),key:document.getElementById('set_ejsKey').value.trim(),email:document.getElementById('set_ejsEmail').value.trim()};
+  localStorage.setItem('nova_ejsCfg',JSON.stringify(cfg));
+  if(cfg.key){try{emailjs.init(cfg.key);}catch(e){}}
+  showToast('EmailJS 설정 저장완료','info');
+}
+
+function saveProfile() {
+  const name=document.getElementById('set_name').value.trim();
+  if(name&&S.user){S.user.name=name;document.getElementById('sbName').textContent=name;document.getElementById('topUser').textContent=name;document.getElementById('sbAva').textContent=name.substring(0,2);}
+  showToast('프로필 저장완료');
+}
+
+// ══════════════════════════════════════════
+// UI HELPERS
+// ══════════════════════════════════════════
+function setActive(el) {
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+function showToast(msg, type='success') {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='show '+type;
+  setTimeout(()=>{t.className='';},3200);
+}
+
+function escapeHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function updateTopDate() {
+  const now=new Date();
+  document.getElementById('topDate').textContent=now.toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
+}
+
+// ══════════════════════════════════════════
+// SIDEBAR SMOOTH SCROLL
+// ══════════════════════════════════════════
+document.querySelectorAll('.ni[href^="#"]').forEach(a=>{
+  a.addEventListener('click',e=>{
+    e.preventDefault();
+    const target=document.getElementById(a.getAttribute('href').slice(1));
+    if(target) target.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+});
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+window.addEventListener('DOMContentLoaded',()=>{
+  updateFBStatus();
+  updateTopDate();
+  setInterval(updateTopDate,60000);
+});
+</script>
+</body>
+</html>
