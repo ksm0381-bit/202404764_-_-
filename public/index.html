@@ -769,6 +769,7 @@ let tasks = [], postits = [], teamMembers = [], chatMessages = {}, calEvents = [
 let charts = {};
 let taskFilter = { search:'', status:'', member:'' };
 S.selectedDate = '';
+const DATA_VERSION = '2.2';
 
 // ══════════════════════════════════════════
 // DEMO DATA
@@ -854,6 +855,12 @@ function saveAll() {
 }
 
 function loadAll() {
+  // 버전이 다르면 구버전 캐시 전체 초기화 → 새 데모 데이터 사용
+  if(localStorage.getItem('nova_version') !== DATA_VERSION) {
+    ['nova_tasks','nova_postits','nova_team','nova_chat','nova_cal','nova_notices'].forEach(k=>localStorage.removeItem(k));
+    localStorage.setItem('nova_version', DATA_VERSION);
+    return; // 빈 배열 유지 → loginDemo/loginGoogle 에서 initDemoData() 호출
+  }
   const t = localStorage.getItem('nova_tasks');
   const p = localStorage.getItem('nova_postits');
   const tm = localStorage.getItem('nova_team');
@@ -1098,64 +1105,60 @@ function updateKPI() {
   document.getElementById('kpi3').textContent = delay;
   document.getElementById('kpi4').textContent = thisWeekEvts;
 
-  // ── 업무 현황 혼합 차트 (막대×4 + 완료율 꺾은선 + 이중Y축) ──
+  // ── 업무 현황 혼합 차트 ──
   if(charts.work) charts.work.destroy();
   const ctx = document.getElementById('chartWork').getContext('2d');
-  const memberNames = teamMembers.map(m=>m.name);
+  const members = teamMembers.length ? teamMembers : [{name:'미배정'}];
+  const memberNames = members.map(m=>m.name);
   const doneCounts  = memberNames.map(n=>tasks.filter(t=>t.assignee===n&&t.status==='done').length);
   const progCounts  = memberNames.map(n=>tasks.filter(t=>t.assignee===n&&t.status==='progress').length);
   const delayCounts = memberNames.map(n=>tasks.filter(t=>t.assignee===n&&t.status==='delay').length);
   const todoCounts  = memberNames.map(n=>tasks.filter(t=>t.assignee===n&&t.status==='todo').length);
-  const rateData = memberNames.map((_,i)=>{
-    const tot = doneCounts[i]+progCounts[i]+delayCounts[i]+todoCounts[i];
-    return tot>0 ? Math.round(doneCounts[i]/tot*100) : 0;
-  });
-  // 배지 업데이트
-  const overallRate = tasks.length>0 ? Math.round(done/tasks.length*100) : 0;
-  const elR=document.getElementById('chartStatRate'); if(elR) elR.textContent=`✅ 완료율 ${overallRate}%`;
-  const elD=document.getElementById('chartStatDone'); if(elD) elD.textContent=`📋 완료 ${done}건`;
-  const elDl=document.getElementById('chartStatDelay'); if(elDl) elDl.textContent=`🚨 지연 ${delay}건`;
+  const totalPerMember = memberNames.map((_,i)=>doneCounts[i]+progCounts[i]+delayCounts[i]+todoCounts[i]);
+  const rateData = memberNames.map((_,i)=>totalPerMember[i]>0?Math.round(doneCounts[i]/totalPerMember[i]*100):0);
+  // 상단 배지
+  const overallRate = tasks.length>0?Math.round(done/tasks.length*100):0;
+  const elR=document.getElementById('chartStatRate');  if(elR) elR.textContent=`✅ 완료율 ${overallRate}%`;
+  const elD=document.getElementById('chartStatDone');  if(elD) elD.textContent=`📋 완료 ${done}건`;
+  const elDl=document.getElementById('chartStatDelay');if(elDl)elDl.textContent=`🚨 지연 ${delay}건`;
 
   charts.work = new Chart(ctx,{
     data:{
       labels: memberNames,
       datasets:[
-        {type:'bar',  label:'완료',   data:doneCounts,  backgroundColor:'rgba(46,213,115,0.75)', borderColor:'#2ed573', borderWidth:1, borderRadius:5, order:2, yAxisID:'y'},
-        {type:'bar',  label:'진행중', data:progCounts,  backgroundColor:'rgba(108,99,255,0.75)', borderColor:'#6c63ff', borderWidth:1, borderRadius:5, order:2, yAxisID:'y'},
-        {type:'bar',  label:'할 일',  data:todoCounts,  backgroundColor:'rgba(255,159,67,0.55)', borderColor:'#ff9f43', borderWidth:1, borderRadius:5, order:2, yAxisID:'y'},
-        {type:'bar',  label:'지연',   data:delayCounts, backgroundColor:'rgba(255,71,87,0.75)',  borderColor:'#ff4757', borderWidth:1, borderRadius:5, order:2, yAxisID:'y'},
-        {type:'line', label:'완료율%',data:rateData,
-          borderColor:'#fff', backgroundColor:'rgba(255,255,255,0.08)',
-          borderWidth:2.5, pointBackgroundColor:'#fff', pointBorderColor:'rgba(255,255,255,0.4)',
-          pointRadius:4, pointHoverRadius:6, tension:0.35, fill:true, order:1, yAxisID:'y2'},
+        {type:'bar', label:'✅ 완료',   data:doneCounts,  backgroundColor:'rgba(46,213,115,0.8)', borderColor:'#2ed573', borderWidth:0, borderRadius:{topLeft:4,topRight:4}, order:2, yAxisID:'y'},
+        {type:'bar', label:'⏳ 진행중', data:progCounts,  backgroundColor:'rgba(108,99,255,0.8)', borderColor:'#6c63ff', borderWidth:0, borderRadius:{topLeft:4,topRight:4}, order:2, yAxisID:'y'},
+        {type:'bar', label:'📌 할 일',  data:todoCounts,  backgroundColor:'rgba(255,159,67,0.65)',borderColor:'#ff9f43', borderWidth:0, borderRadius:{topLeft:4,topRight:4}, order:2, yAxisID:'y'},
+        {type:'bar', label:'🚨 지연',   data:delayCounts, backgroundColor:'rgba(255,71,87,0.8)',  borderColor:'#ff4757', borderWidth:0, borderRadius:{topLeft:4,topRight:4}, order:2, yAxisID:'y'},
+        {type:'line',label:'완료율%',   data:rateData,
+          borderColor:'rgba(255,255,255,0.9)', backgroundColor:'rgba(255,255,255,0.06)',
+          borderWidth:2, pointBackgroundColor:'#fff', pointRadius:3.5, pointHoverRadius:5,
+          tension:0.4, fill:true, order:1, yAxisID:'y2'}
       ]
     },
     options:{
       responsive:true, maintainAspectRatio:false,
       interaction:{mode:'index',intersect:false},
       plugins:{
-        legend:{position:'top',align:'end',labels:{color:'#7a84a8',font:{size:9.5},boxWidth:9,padding:8}},
+        legend:{position:'top',align:'end',
+          labels:{color:'#7a84a8',font:{size:9},boxWidth:8,padding:6,usePointStyle:true}},
         tooltip:{
-          backgroundColor:'rgba(22,27,39,0.95)', borderColor:'rgba(108,99,255,0.4)', borderWidth:1,
-          titleColor:'#e4e8f5', bodyColor:'#7a84a8', padding:10,
+          backgroundColor:'rgba(16,20,32,0.96)',borderColor:'rgba(108,99,255,0.5)',borderWidth:1,
+          titleColor:'#e4e8f5',bodyColor:'#9aa0be',padding:9,
           callbacks:{
-            afterBody: ctx2=>{
-              const i=ctx2[0]?.dataIndex;
-              if(i!=null) return [`완료율: ${rateData[i]}%`];
-            }
+            title:items=>`👤 ${items[0].label}`,
+            afterBody:items=>[``, `📊 완료율: ${rateData[items[0].dataIndex]}%`,`📦 담당 총 ${totalPerMember[items[0].dataIndex]}건`]
           }
         }
       },
       scales:{
-        x:{ticks:{color:'#7a84a8',font:{size:10}},grid:{color:'rgba(42,48,80,0.4)'}},
-        y:{type:'linear',position:'left',
-           title:{display:true,text:'업무 건수',color:'#3e4668',font:{size:9}},
+        x:{ticks:{color:'#7a84a8',font:{size:10}},grid:{color:'rgba(42,48,80,0.35)',drawBorder:false}},
+        y:{type:'linear',position:'left',min:0,
            ticks:{color:'#7a84a8',stepSize:1,font:{size:9}},
-           grid:{color:'rgba(42,48,80,0.4)'}},
+           grid:{color:'rgba(42,48,80,0.35)',drawBorder:false}},
         y2:{type:'linear',position:'right',min:0,max:100,
-            title:{display:true,text:'완료율',color:'#3e4668',font:{size:9}},
-            ticks:{color:'rgba(255,255,255,0.45)',font:{size:9},callback:v=>v+'%'},
-            grid:{drawOnChartArea:false}}
+            ticks:{color:'rgba(200,200,220,0.5)',font:{size:9},callback:v=>v+'%'},
+            grid:{drawOnChartArea:false,drawBorder:false}}
       }
     }
   });
