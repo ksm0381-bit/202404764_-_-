@@ -267,9 +267,20 @@ select.inp option{background:#161b27;}
 .gc-body::-webkit-scrollbar{width:3px;}
 .gc-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 /* KPI mini */
-.kpi-mini{display:flex;flex-direction:column;justify-content:center;background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:8px 12px;}
+.kpi-mini{display:flex;flex-direction:column;justify-content:center;background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:8px 12px;cursor:pointer;transition:border-color .15s,background .15s;}
+.kpi-mini:hover{border-color:var(--acc);background:rgba(108,99,255,0.07);}
 .kpi-mini .km-val{font-size:1.5rem;font-weight:800;line-height:1;}
 .kpi-mini .km-label{font-size:0.63rem;color:var(--muted);margin-top:3px;}
+/* clickable notice items */
+.notice-item{padding:7px 9px;background:var(--card2);border-radius:5px;margin-bottom:5px;cursor:pointer;transition:filter .15s;}
+.notice-item:hover{filter:brightness(1.18);}
+/* team-row click */
+.team-row{transition:background .15s;}
+.team-row:hover{background:rgba(255,255,255,0.04);}
+/* task row click */
+.task-table tbody tr{cursor:pointer;transition:background .1s;}
+/* chart canvas cursor */
+#chartWork{cursor:pointer;}
 /* compact overrides inside grid */
 .dash-grid .cal-cell{min-height:22px;padding:2px 3px;}
 .dash-grid .cal-dn{font-size:0.63rem;}
@@ -397,21 +408,25 @@ select.inp option{background:#161b27;}
       <!-- ════ ROW 1: KPI × 4 + 팀원현황 ════ -->
       <div class="grid-row row1" id="sec-kpi">
 
-        <div class="kpi-mini">
+        <div class="kpi-mini" onclick="openKpiDetail('done','✅ 완료 업무')">
           <div class="km-val" id="kpi1" style="color:var(--acc);">0</div>
           <div class="km-label">✅ 완료 업무</div>
+          <div style="font-size:0.58rem;color:var(--dim);margin-top:2px;">클릭하여 목록 보기</div>
         </div>
-        <div class="kpi-mini">
+        <div class="kpi-mini" onclick="openKpiDetail('progress','⏳ 진행 중 업무')">
           <div class="km-val" id="kpi2" style="color:var(--amber);">0</div>
           <div class="km-label">⏳ 진행 중</div>
+          <div style="font-size:0.58rem;color:var(--dim);margin-top:2px;">클릭하여 목록 보기</div>
         </div>
-        <div class="kpi-mini">
+        <div class="kpi-mini" onclick="openKpiDetail('delay','🚨 지연 업무')">
           <div class="km-val" id="kpi3" style="color:var(--red);">0</div>
           <div class="km-label">🚨 지연</div>
+          <div style="font-size:0.58rem;color:var(--dim);margin-top:2px;">클릭하여 목록 보기</div>
         </div>
-        <div class="kpi-mini">
+        <div class="kpi-mini" onclick="openKpiDetail('week','📅 이번 주 일정')">
           <div class="km-val" id="kpi4" style="color:var(--info);">0</div>
           <div class="km-label">📅 이번 주 일정</div>
+          <div style="font-size:0.58rem;color:var(--dim);margin-top:2px;">클릭하여 일정 보기</div>
         </div>
         <!-- 팀원현황 -->
         <div class="gc">
@@ -746,6 +761,71 @@ select.inp option{background:#161b27;}
     <div class="modal-footer">
       <button class="btn btn-outline btn-sm" onclick="closeModal('noticeModal')">취소</button>
       <button class="btn btn-primary btn-sm" onclick="saveNotice()">등록</button>
+    </div>
+  </div>
+</div>
+
+<!-- KPI DETAIL MODAL -->
+<div class="modal-ov" id="kpiDetailModal">
+  <div class="modal" style="width:620px;max-height:82vh;display:flex;flex-direction:column;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-shrink:0;">
+      <h3 id="kpiDetailTitle" style="margin:0;font-size:1rem;"></h3>
+      <button class="btn btn-outline btn-sm" onclick="closeModal('kpiDetailModal')">✕ 닫기</button>
+    </div>
+    <div id="kpiDetailBody" style="overflow-y:auto;flex:1;"></div>
+  </div>
+</div>
+
+<!-- MEMBER DETAIL MODAL -->
+<div class="modal-ov" id="memberDetailModal">
+  <div class="modal" style="width:520px;max-height:85vh;display:flex;flex-direction:column;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-shrink:0;">
+      <h3 id="memberDetailTitle" style="margin:0;font-size:1rem;"></h3>
+      <button class="btn btn-outline btn-sm" onclick="closeModal('memberDetailModal')">✕ 닫기</button>
+    </div>
+    <div id="memberDetailBody" style="overflow-y:auto;flex:1;"></div>
+  </div>
+</div>
+
+<!-- NOTICE DETAIL MODAL -->
+<div class="modal-ov" id="noticeDetailModal">
+  <div class="modal" style="width:500px;">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;">
+      <h3 id="noticeDetailTitle" style="margin:0;flex:1;margin-right:10px;font-size:0.95rem;line-height:1.5;"></h3>
+      <button class="btn btn-outline btn-sm" style="flex-shrink:0;" onclick="closeModal('noticeDetailModal')">✕</button>
+    </div>
+    <div id="noticeDetailBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" id="noticeDetailDeleteBtn">🗑 삭제</button>
+      <button class="btn btn-outline btn-sm" onclick="closeModal('noticeDetailModal')">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT MEMBER MODAL -->
+<div class="modal-ov" id="editMemberModal">
+  <div class="modal" style="width:460px;">
+    <h3 style="margin-bottom:14px;">✏️ 팀원 정보 수정</h3>
+    <input type="hidden" id="em_id">
+    <div class="mfg"><label>이름 *</label><input class="inp" id="em_name" placeholder="이름"></div>
+    <div class="mfg"><label>이메일</label><input class="inp" id="em_email" placeholder="email@example.com"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="mfg"><label>역할</label>
+        <select class="inp" id="em_role">
+          <option value="member">팀원</option><option value="manager">팀장</option><option value="admin">관리자</option>
+        </select>
+      </div>
+      <div class="mfg"><label>상태</label>
+        <select class="inp" id="em_status">
+          <option value="online">🟢 온라인</option><option value="busy">🟠 바쁨</option><option value="offline">⚫ 오프라인</option>
+        </select>
+      </div>
+    </div>
+    <div class="mfg"><label>현재 업무</label><input class="inp" id="em_task" placeholder="담당 업무"></div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" onclick="deleteMember(document.getElementById('em_id').value)">🗑 삭제</button>
+      <button class="btn btn-outline btn-sm" onclick="closeModal('editMemberModal')">취소</button>
+      <button class="btn btn-primary btn-sm" onclick="saveEditMember()">💾 저장</button>
     </div>
   </div>
 </div>
@@ -1139,6 +1219,12 @@ function updateKPI() {
     options:{
       responsive:true, maintainAspectRatio:false,
       interaction:{mode:'index',intersect:false},
+      onClick:(evt,elements)=>{
+        if(elements.length>0){
+          const idx=elements[0].index;
+          openMemberDetail(memberNames[idx]);
+        }
+      },
       plugins:{
         legend:{position:'top',align:'end',
           labels:{color:'#7a84a8',font:{size:9},boxWidth:8,padding:6,usePointStyle:true}},
@@ -1146,7 +1232,7 @@ function updateKPI() {
           backgroundColor:'rgba(16,20,32,0.96)',borderColor:'rgba(108,99,255,0.5)',borderWidth:1,
           titleColor:'#e4e8f5',bodyColor:'#9aa0be',padding:9,
           callbacks:{
-            title:items=>`👤 ${items[0].label}`,
+            title:items=>`👤 ${items[0].label} (클릭하여 상세보기)`,
             afterBody:items=>[``, `📊 완료율: ${rateData[items[0].dataIndex]}%`,`📦 담당 총 ${totalPerMember[items[0].dataIndex]}건`]
           }
         }
@@ -1172,7 +1258,7 @@ function updateKPI() {
 function renderTeamHome() {
   const el = document.getElementById('teamListHome');
   el.innerHTML = teamMembers.slice(0,4).map(m=>`
-    <div class="team-row">
+    <div class="team-row" onclick="openMemberDetail('${m.id}')" style="cursor:pointer;" title="${m.name} 상세보기">
       <div class="team-ava" style="background:${m.color||'var(--acc)'};">${m.name.substring(0,2)}</div>
       <div class="team-info">
         <div class="team-name">${m.name}</div>
@@ -1246,15 +1332,15 @@ function renderTaskTable() {
   const tbody = document.getElementById('taskBody');
   if(!filtered.length){ tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px;">업무가 없습니다</td></tr>'; return; }
   tbody.innerHTML = filtered.map(t=>`
-    <tr>
+    <tr onclick="openTaskModal('${t.id}')" title="클릭하여 수정">
       <td style="font-weight:500;">${t.title}</td>
       <td>${t.assignee}</td>
       <td>${PRIO[t.priority]||t.priority}</td>
       <td><span class="badge ${BADGE[t.status]}">${LABEL[t.status]}</span></td>
       <td style="color:var(--muted);">${t.due||'-'}</td>
       <td>
-        <button class="btn btn-outline btn-sm" onclick="openTaskModal('${t.id}')" style="margin-right:4px;">수정</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteTask('${t.id}')">삭제</button>
+        <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();openTaskModal('${t.id}')" style="margin-right:4px;">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteTask('${t.id}')">🗑</button>
       </td>
     </tr>`).join('');
 }
@@ -1661,14 +1747,14 @@ function renderNotices() {
   const typeLabel={urgent:'🚨 긴급',meeting:'📅 회의',success:'✅ 완료',info:'📌 일반'};
   if(!notices.length){el.innerHTML='<div style="color:var(--muted);font-size:0.78rem;text-align:center;padding:10px;">공지사항이 없습니다</div>';return;}
   el.innerHTML=notices.map(n=>`
-    <div style="padding:7px 9px;background:var(--card2);border-radius:5px;margin-bottom:5px;border-left:3px solid ${typeColor[n.type]||'var(--acc)'};">
+    <div class="notice-item" onclick="openNoticeDetail('${n.id}')" style="border-left:3px solid ${typeColor[n.type]||'var(--acc)'};">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-        <div style="flex:1;">
-          <div style="font-size:0.78rem;font-weight:600;margin-bottom:2px;">${escapeHtml(n.title)}</div>
-          <div style="font-size:0.7rem;color:var(--muted);line-height:1.4;">${escapeHtml(n.content)}</div>
-          <div style="font-size:0.62rem;color:var(--dim);margin-top:3px;">${n.date} · <span style="color:${typeColor[n.type]};">${typeLabel[n.type]||'일반'}</span></div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:0.78rem;font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(n.title)}</div>
+          <div style="font-size:0.68rem;color:var(--muted);line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(n.content||'')}</div>
+          <div style="font-size:0.6rem;color:var(--dim);margin-top:2px;">${n.date} · <span style="color:${typeColor[n.type]};">${typeLabel[n.type]||'일반'}</span> <span style="color:var(--dim);">· 클릭하여 전체 보기</span></div>
         </div>
-        <button onclick="deleteNotice('${n.id}')" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:0.72rem;padding:0 2px;flex-shrink:0;">✕</button>
+        <button onclick="event.stopPropagation();deleteNotice('${n.id}')" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:0.72rem;padding:0 2px;flex-shrink:0;margin-left:4px;">✕</button>
       </div>
     </div>`).join('');
 }
@@ -1706,17 +1792,20 @@ function openSettings() {
 function renderAdmin() {
   const tbody=document.getElementById('adminUserBody');
   const rLabel={admin:'👑 관리자',manager:'🧑‍💼 팀장',member:'👤 팀원'};
+  const statusDot={online:'🟢',busy:'🟠',offline:'⚫'};
   tbody.innerHTML=teamMembers.map(m=>`
-    <tr>
-      <td>${m.name}</td>
-      <td style="color:var(--muted);">${m.email}</td>
+    <tr onclick="openMemberDetail('${m.id}')" style="cursor:pointer;" title="${m.name} 상세보기">
+      <td>
+        <div style="display:flex;align-items:center;gap:5px;">
+          <div style="width:20px;height:20px;border-radius:50%;background:${m.color||'var(--acc)'};display:flex;align-items:center;justify-content:center;font-size:0.58rem;color:#fff;font-weight:700;flex-shrink:0;">${m.name.substring(0,2)}</div>
+          <span style="font-weight:500;">${m.name}</span>
+          <span style="font-size:0.7rem;">${statusDot[m.status]||''}</span>
+        </div>
+      </td>
+      <td style="color:var(--muted);font-size:0.72rem;">${m.email||'-'}</td>
       <td>${rLabel[m.role]||'팀원'}</td>
       <td>
-        <select class="inp" style="padding:4px 8px;font-size:0.78rem;" onchange="changeRole('${m.id}',this.value)">
-          <option value="member" ${m.role==='member'?'selected':''}>팀원</option>
-          <option value="manager" ${m.role==='manager'?'selected':''}>팀장</option>
-          <option value="admin" ${m.role==='admin'?'selected':''}>관리자</option>
-        </select>
+        <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();openEditMemberModal('${m.id}')" style="padding:2px 8px;font-size:0.65rem;">✏️ 수정</button>
       </td>
     </tr>`).join('');
 }
@@ -1800,6 +1889,210 @@ function saveProfile() {
   const name=document.getElementById('set_name').value.trim();
   if(name&&S.user){S.user.name=name;document.getElementById('sbName').textContent=name;document.getElementById('topUser').textContent=name;document.getElementById('sbAva').textContent=name.substring(0,2);}
   showToast('프로필 저장완료');
+}
+
+// ══════════════════════════════════════════
+// DETAIL MODALS
+// ══════════════════════════════════════════
+
+// ── KPI 상세: 상태별 업무 목록 or 이번주 일정 ──
+function openKpiDetail(status, label) {
+  document.getElementById('kpiDetailTitle').textContent = label;
+  const el = document.getElementById('kpiDetailBody');
+
+  if(status === 'week') {
+    const now = new Date(); now.setHours(0,0,0,0);
+    const weekEnd = new Date(now); weekEnd.setDate(now.getDate()+(6-now.getDay()));
+    const evts = calEvents.filter(e=>{ const d=new Date(e.date+'T00:00:00'); return d>=now && d<=weekEnd; })
+      .sort((a,b)=>a.date.localeCompare(b.date));
+    if(!evts.length) {
+      el.innerHTML='<p style="color:var(--muted);text-align:center;padding:30px;">이번 주 일정이 없습니다</p>';
+    } else {
+      el.innerHTML = evts.map(e=>`
+        <div style="display:flex;align-items:flex-start;gap:10px;padding:11px 13px;background:var(--card2);border-radius:7px;margin-bottom:7px;border-left:3px solid var(--info);">
+          <div style="flex:1;">
+            <div style="font-size:0.88rem;font-weight:600;">${escapeHtml(e.title)}</div>
+            <div style="font-size:0.75rem;color:var(--muted);margin-top:3px;">📅 ${e.date}${e.memo?' &nbsp;·&nbsp; '+escapeHtml(e.memo):''}</div>
+          </div>
+          <button onclick="deleteCalEvent('${e.id}');openKpiDetail('week','📅 이번 주 일정')" style="background:rgba(255,71,87,0.13);border:none;border-radius:4px;color:var(--red);cursor:pointer;padding:3px 8px;font-size:0.72rem;flex-shrink:0;">삭제</button>
+        </div>`).join('');
+    }
+
+  } else {
+    const filtered = tasks.filter(t=>t.status===status);
+    if(!filtered.length) {
+      el.innerHTML=`<p style="color:var(--muted);text-align:center;padding:30px;">해당 상태의 업무가 없습니다</p>`;
+    } else {
+      const overallPct = filtered.length > 0 ? Math.round(filtered.filter(t=>t.status==='done').length/filtered.length*100) : 0;
+      el.innerHTML = `
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">
+          <div style="background:var(--card2);border-radius:6px;padding:10px;text-align:center;">
+            <div style="font-size:1.4rem;font-weight:800;color:var(--acc);">${filtered.length}</div>
+            <div style="font-size:0.68rem;color:var(--muted);">총 건수</div>
+          </div>
+          <div style="background:var(--card2);border-radius:6px;padding:10px;text-align:center;">
+            <div style="font-size:1.4rem;font-weight:800;color:var(--amber);">${filtered.filter(t=>t.priority==='high').length}</div>
+            <div style="font-size:0.68rem;color:var(--muted);">높은 우선순위</div>
+          </div>
+          <div style="background:var(--card2);border-radius:6px;padding:10px;text-align:center;">
+            <div style="font-size:1.4rem;font-weight:800;color:var(--green);">${[...new Set(filtered.map(t=>t.assignee))].length}</div>
+            <div style="font-size:0.68rem;color:var(--muted);">담당자 수</div>
+          </div>
+        </div>
+        <table class="task-table">
+          <thead><tr><th>업무명</th><th>담당자</th><th>우선순위</th><th>마감일</th><th>메모</th></tr></thead>
+          <tbody>${filtered.map(t=>`
+            <tr onclick="closeModal('kpiDetailModal');openTaskModal('${t.id}')" title="클릭하여 수정" style="cursor:pointer;">
+              <td style="font-weight:500;">${escapeHtml(t.title)}</td>
+              <td>${t.assignee}</td>
+              <td>${PRIO[t.priority]||t.priority}</td>
+              <td style="color:var(--muted);">${t.due||'-'}</td>
+              <td style="color:var(--muted);font-size:0.72rem;">${t.memo?escapeHtml(t.memo.substring(0,28))+(t.memo.length>28?'…':''):'-'}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>`;
+    }
+  }
+  document.getElementById('kpiDetailModal').classList.add('show');
+}
+
+// ── 팀원 상세 프로필 ──
+function openMemberDetail(idOrName) {
+  const m = teamMembers.find(x=>x.id===idOrName) || teamMembers.find(x=>x.name===idOrName);
+  if(!m) return;
+  document.getElementById('memberDetailTitle').textContent = '👤 '+m.name+' 상세 정보';
+  const memberTasks = tasks.filter(t=>t.assignee===m.name);
+  const done  = memberTasks.filter(t=>t.status==='done').length;
+  const prog  = memberTasks.filter(t=>t.status==='progress').length;
+  const delay = memberTasks.filter(t=>t.status==='delay').length;
+  const todo  = memberTasks.filter(t=>t.status==='todo').length;
+  const rate  = memberTasks.length>0?Math.round(done/memberTasks.length*100):0;
+  const rLabel={admin:'👑 관리자',manager:'🧑‍💼 팀장',member:'👤 팀원'};
+  const sLabel={online:'🟢 온라인',busy:'🟠 바쁨',offline:'⚫ 오프라인'};
+  document.getElementById('memberDetailBody').innerHTML = `
+    <!-- 프로필 헤더 -->
+    <div style="display:flex;align-items:center;gap:14px;padding:14px;background:var(--card2);border-radius:8px;margin-bottom:14px;">
+      <div class="ava" style="width:52px;height:52px;font-size:1.1rem;background:${m.color||'var(--acc)'};">${m.name.substring(0,2)}</div>
+      <div style="flex:1;">
+        <div style="font-size:1rem;font-weight:700;">${escapeHtml(m.name)}</div>
+        <div style="font-size:0.78rem;color:var(--muted);margin-top:2px;">${m.email||'이메일 없음'}</div>
+        <div style="display:flex;gap:6px;margin-top:7px;flex-wrap:wrap;">
+          <span style="background:rgba(108,99,255,0.18);color:var(--acc);padding:2px 9px;border-radius:10px;font-size:0.72rem;font-weight:600;">${rLabel[m.role]||'팀원'}</span>
+          <span style="background:rgba(255,255,255,0.07);color:var(--tx);padding:2px 9px;border-radius:10px;font-size:0.72rem;">${sLabel[m.status]||m.status}</span>
+          ${m.task?`<span style="background:rgba(79,195,247,0.13);color:var(--info);padding:2px 9px;border-radius:10px;font-size:0.72rem;">📋 ${escapeHtml(m.task)}</span>`:''}
+        </div>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="closeModal('memberDetailModal');openEditMemberModal('${m.id}')">✏️ 수정</button>
+    </div>
+    <!-- 업무 통계 -->
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:14px;">
+      <div style="background:var(--card2);border-radius:6px;padding:8px;text-align:center;border-top:2px solid var(--green);">
+        <div style="font-size:1.15rem;font-weight:800;color:var(--green);">${done}</div>
+        <div style="font-size:0.6rem;color:var(--muted);">완료</div>
+      </div>
+      <div style="background:var(--card2);border-radius:6px;padding:8px;text-align:center;border-top:2px solid var(--acc);">
+        <div style="font-size:1.15rem;font-weight:800;color:var(--acc);">${prog}</div>
+        <div style="font-size:0.6rem;color:var(--muted);">진행중</div>
+      </div>
+      <div style="background:var(--card2);border-radius:6px;padding:8px;text-align:center;border-top:2px solid var(--amber);">
+        <div style="font-size:1.15rem;font-weight:800;color:var(--amber);">${todo}</div>
+        <div style="font-size:0.6rem;color:var(--muted);">할 일</div>
+      </div>
+      <div style="background:var(--card2);border-radius:6px;padding:8px;text-align:center;border-top:2px solid var(--red);">
+        <div style="font-size:1.15rem;font-weight:800;color:var(--red);">${delay}</div>
+        <div style="font-size:0.6rem;color:var(--muted);">지연</div>
+      </div>
+      <div style="background:var(--card2);border-radius:6px;padding:8px;text-align:center;border-top:2px solid var(--pink);">
+        <div style="font-size:1.15rem;font-weight:800;color:var(--pink);">${rate}%</div>
+        <div style="font-size:0.6rem;color:var(--muted);">완료율</div>
+      </div>
+    </div>
+    <!-- 담당 업무 목록 -->
+    ${memberTasks.length?`
+    <div style="font-size:0.8rem;font-weight:700;color:var(--muted);margin-bottom:7px;letter-spacing:0.5px;">📋 담당 업무 (${memberTasks.length}건)</div>
+    <div>${memberTasks.map(t=>`
+      <div style="display:flex;align-items:center;gap:9px;padding:8px 10px;background:var(--card2);border-radius:5px;margin-bottom:4px;cursor:pointer;transition:filter .1s;" onclick="closeModal('memberDetailModal');openTaskModal('${t.id}')" title="클릭하여 수정">
+        <span class="badge ${BADGE[t.status]}">${LABEL[t.status]}</span>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:0.82rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(t.title)}</div>
+          ${t.memo?`<div style="font-size:0.7rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(t.memo)}</div>`:''}
+        </div>
+        <div style="font-size:0.7rem;color:var(--muted);white-space:nowrap;">${t.due||''}</div>
+        <div style="font-size:0.68rem;color:var(--dim);">${PRIO[t.priority]||''}</div>
+      </div>`).join('')}
+    </div>
+    `:'<p style="color:var(--muted);font-size:0.82rem;text-align:center;padding:16px;">담당 업무 없음</p>'}
+  `;
+  document.getElementById('memberDetailModal').classList.add('show');
+}
+
+// ── 팀원 수정 ──
+function openEditMemberModal(id) {
+  const m = teamMembers.find(x=>x.id===id);
+  if(!m) return;
+  document.getElementById('em_id').value    = m.id;
+  document.getElementById('em_name').value  = m.name;
+  document.getElementById('em_email').value = m.email||'';
+  document.getElementById('em_role').value  = m.role||'member';
+  document.getElementById('em_task').value  = m.task||'';
+  document.getElementById('em_status').value= m.status||'online';
+  document.getElementById('editMemberModal').classList.add('show');
+}
+
+function saveEditMember() {
+  const id   = document.getElementById('em_id').value;
+  const name = document.getElementById('em_name').value.trim();
+  if(!name){ showToast('이름을 입력하세요','error'); return; }
+  const m = teamMembers.find(x=>x.id===id);
+  if(m){
+    m.name   = name;
+    m.email  = document.getElementById('em_email').value.trim();
+    m.role   = document.getElementById('em_role').value;
+    m.task   = document.getElementById('em_task').value.trim();
+    m.status = document.getElementById('em_status').value;
+    saveAll();
+    closeModal('editMemberModal');
+    renderAdmin(); renderTeamHome(); populateMemberFilter(); updateKPI();
+    showToast(`${name} 정보가 수정되었습니다`);
+  }
+}
+
+function deleteMember(id) {
+  const m = teamMembers.find(x=>x.id===id);
+  if(!m) return;
+  if(!confirm(`${m.name}을(를) 팀원 목록에서 삭제하시겠습니까?`)) return;
+  teamMembers = teamMembers.filter(x=>x.id!==id);
+  saveAll();
+  closeModal('editMemberModal'); closeModal('memberDetailModal');
+  renderAdmin(); renderTeamHome(); populateMemberFilter(); updateKPI();
+  showToast('팀원이 삭제되었습니다');
+}
+
+// ── 공지 전체 보기 ──
+function openNoticeDetail(id) {
+  const n = notices.find(x=>x.id===id);
+  if(!n) return;
+  const typeColor={urgent:'var(--red)',meeting:'var(--info)',success:'var(--green)',info:'var(--acc)'};
+  const typeLabel={urgent:'🚨 긴급',meeting:'📅 회의',success:'✅ 완료',info:'📌 일반'};
+  const col = typeColor[n.type]||'var(--acc)';
+  document.getElementById('noticeDetailTitle').innerHTML =
+    `<span style="color:${col};">${typeLabel[n.type]||'일반'}</span>&ensp;${escapeHtml(n.title)}`;
+  document.getElementById('noticeDetailBody').innerHTML = `
+    <div style="padding:14px 16px;background:var(--card2);border-radius:8px;border-left:4px solid ${col};margin-bottom:12px;">
+      <div style="font-size:0.9rem;line-height:1.8;color:var(--tx);">${escapeHtml(n.content||'(내용 없음)')}</div>
+    </div>
+    <div style="display:flex;gap:12px;font-size:0.78rem;color:var(--muted);">
+      <span>📅 게시일: ${n.date}</span>
+      <span style="color:${col};font-weight:600;">${typeLabel[n.type]||'일반'}</span>
+    </div>`;
+  const delBtn = document.getElementById('noticeDetailDeleteBtn');
+  delBtn.onclick = ()=>{
+    if(confirm('이 공지사항을 삭제하시겠습니까?')){
+      deleteNotice(n.id);
+      closeModal('noticeDetailModal');
+    }
+  };
+  document.getElementById('noticeDetailModal').classList.add('show');
 }
 
 // ══════════════════════════════════════════
