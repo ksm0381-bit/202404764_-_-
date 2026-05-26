@@ -4,9 +4,7 @@
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ■ Railway 배포 URL
-https://[Railway 배포 후 이 칸을 실제 URL로 교체하세요]
-
-예시: https://nova-dashboard-production.up.railway.app
+https://202404764-production.up.railway.app
 
 ■ GitHub 레포지토리
 https://github.com/ksm0381-bit/202404764_-_-.git

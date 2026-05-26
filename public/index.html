@@ -916,7 +916,10 @@ function loginDemo() {
 function afterLogin() {
   const savedRole = localStorage.getItem('nova_role');
   if(savedRole) { S.role = savedRole; showApp(); }
-  else { document.getElementById('roleOverlay').classList.add('show'); }
+  else {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('roleOverlay').classList.add('show');
+  }
 }
 
 function selectRole(r) {
