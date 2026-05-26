@@ -357,51 +357,36 @@ select.inp option{background:#161b27;}
 </div>
 
 <!-- ════════════════ APP SCREEN ════════════════ -->
-<div id="appScreen">
-  <!-- SIDEBAR -->
-  <div class="sb">
-    <div class="sb-logo">
-      <div class="logo">🌐 NOVA</div>
-      <div class="school">한국외국어대학교<br>차이나데이터큐레이션전공<br>202404764 김수민</div>
-      <div class="role-badge" id="sbRoleBadge">팀원</div>
-    </div>
-    <div class="sb-nav">
-      <div class="nav-section">대시보드</div>
-      <a class="ni active" href="#" onclick="setActive(this);return false;"><span class="ic">🏠</span>홈 요약</a>
-      <a class="ni" href="#" onclick="setActive(this);return false;"><span class="ic">📈</span>업무 현황</a>
-      <div class="nav-section">업무</div>
-      <a class="ni" href="#" onclick="setActive(this);return false;"><span class="ic">📋</span>업무 분장</a>
-      <a class="ni" href="#" onclick="setActive(this);return false;"><span class="ic">💬</span>SNS 채팅</a>
-      <a class="ni" href="#" onclick="setActive(this);return false;"><span class="ic">🗒️</span>포스트잇</a>
-      <div class="nav-section">분석</div>
-      <a class="ni" href="#" onclick="setActive(this);return false;"><span class="ic">📊</span>결산 분석</a>
-      <a class="ni" href="#" onclick="setActive(this);return false;"><span class="ic">📅</span>캘린더</a>
-      <div class="nav-section">관리</div>
-      <a class="ni" href="#" onclick="setActive(this);return false;" id="nav-admin"><span class="ic">👑</span>관리자</a>
-      <a class="ni" href="#" onclick="setActive(this);return false;"><span class="ic">⚙️</span>설정</a>
-    </div>
-    <div class="sb-foot">
-      <div class="user-row">
-        <div class="ava" id="sbAva">KS</div>
-        <div class="user-info">
-          <div class="uname" id="sbName">김수민</div>
-          <div class="uemail" id="sbEmail">ksm0381@hufs.ac.kr</div>
-        </div>
-        <button class="logout-btn" onclick="logout()" title="로그아웃">⏻</button>
-      </div>
-    </div>
-  </div>
+<!-- 숨김 호환 요소 (JS가 사이드바 ID 참조) -->
+<span id="sbRoleBadge" style="display:none;"></span>
+<a id="nav-admin" style="display:none;"></a>
 
-  <!-- MAIN -->
-  <div class="main">
+<div id="appScreen">
+  <!-- MAIN (no sidebar) -->
+  <div class="main" style="width:100%;">
     <!-- TOPBAR -->
-    <div class="topbar">
-      <div class="topbar-title">업무 종합대시보드</div>
-      <div class="topbar-school">한국외국어대학교 차이나데이터큐레이션전공 | 202404764 김수민</div>
-      <div class="topbar-right">
+    <div class="topbar" style="gap:10px;">
+      <!-- 로고 + 타이틀 -->
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+        <div style="font-size:1rem;font-weight:800;background:linear-gradient(90deg,var(--acc),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">🌐 NOVA</div>
+        <div class="topbar-title" style="font-size:0.9rem;">업무 종합대시보드</div>
+      </div>
+      <div class="topbar-school" style="flex:1;">한국외국어대학교 차이나데이터큐레이션전공 | 202404764 김수민</div>
+      <div class="topbar-right" style="gap:10px;">
         <div class="dot-on"></div>
-        <div class="user-chip"><span id="topUser">김수민</span></div>
-        <div id="topDate" style="font-size:0.75rem;color:var(--muted);"></div>
+        <div id="topDate" style="font-size:0.72rem;color:var(--muted);white-space:nowrap;"></div>
+        <!-- 사용자 정보 -->
+        <div style="display:flex;align-items:center;gap:6px;background:rgba(108,99,255,0.1);padding:4px 10px;border-radius:16px;">
+          <div class="ava" id="sbAva" style="width:24px;height:24px;font-size:0.62rem;">KS</div>
+          <div>
+            <div style="font-size:0.78rem;font-weight:600;line-height:1.2;" id="sbName">김수민</div>
+            <div style="font-size:0.6rem;color:var(--muted);line-height:1;" id="sbEmail">ksm0381@hufs.ac.kr</div>
+          </div>
+        </div>
+        <span id="topUser" style="display:none;">김수민</span>
+        <!-- 설정 버튼 -->
+        <button class="btn btn-outline btn-sm" onclick="openSettings()" style="font-size:0.78rem;padding:5px 12px;flex-shrink:0;">⚙️ 설정</button>
+        <button class="btn btn-sm" onclick="logout()" style="background:rgba(255,71,87,0.15);color:var(--red);border:1px solid rgba(255,71,87,0.3);font-size:0.75rem;padding:5px 10px;flex-shrink:0;">로그아웃</button>
       </div>
     </div>
 
@@ -583,41 +568,13 @@ select.inp option{background:#161b27;}
           </div>
         </div>
 
-        <!-- 설정 -->
-        <div class="gc" id="sec-settings">
-          <div class="gc-hd"><span class="gc-title">⚙️ 설정</span></div>
-          <div class="gc-body">
-            <div style="font-size:0.7rem;color:var(--acc);font-weight:600;margin-bottom:4px;">🔥 Firebase 설정</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-bottom:5px;">
-              <input class="inp" id="set_apiKey" placeholder="API Key" style="font-size:0.67rem;padding:3px 6px;">
-              <input class="inp" id="set_authDomain" placeholder="Auth Domain" style="font-size:0.67rem;padding:3px 6px;">
-              <input class="inp" id="set_databaseURL" placeholder="Database URL" style="font-size:0.67rem;padding:3px 6px;">
-              <input class="inp" id="set_projectId" placeholder="Project ID" style="font-size:0.67rem;padding:3px 6px;">
-              <input class="inp" id="set_storageBucket" placeholder="Storage Bucket" style="font-size:0.67rem;padding:3px 6px;">
-              <input class="inp" id="set_messagingSenderId" placeholder="Sender ID" style="font-size:0.67rem;padding:3px 6px;">
-              <input class="inp" id="set_appId" placeholder="App ID" style="font-size:0.67rem;padding:3px 6px;grid-column:1/-1;">
-            </div>
-            <button class="btn btn-primary btn-sm" onclick="saveSettings()" style="font-size:0.68rem;padding:3px 10px;">저장</button>
-            <span id="firebaseStatus" style="font-size:0.68rem;color:var(--muted);margin-left:6px;"></span>
-
-            <div style="border-top:1px solid var(--border);margin:6px 0 4px;"></div>
-            <div style="font-size:0.7rem;color:var(--acc);font-weight:600;margin-bottom:4px;">📧 EmailJS 설정</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-bottom:5px;">
-              <input class="inp" id="set_ejsService" placeholder="Service ID" style="font-size:0.67rem;padding:3px 6px;">
-              <input class="inp" id="set_ejsTemplate" placeholder="Template ID" style="font-size:0.67rem;padding:3px 6px;">
-              <input class="inp" id="set_ejsKey" placeholder="Public Key" style="font-size:0.67rem;padding:3px 6px;">
-              <input class="inp" id="set_ejsEmail" placeholder="발송 이메일" style="font-size:0.67rem;padding:3px 6px;">
-            </div>
-            <button class="btn btn-outline btn-sm" onclick="saveEmailJS()" style="font-size:0.68rem;padding:3px 10px;">저장</button>
-
-            <div style="border-top:1px solid var(--border);margin:6px 0 4px;"></div>
-            <div style="font-size:0.7rem;color:var(--acc);font-weight:600;margin-bottom:4px;">👤 프로필</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;">
-              <input class="inp" id="set_name" placeholder="이름" style="font-size:0.67rem;padding:3px 6px;">
-              <input class="inp" id="set_dept" placeholder="소속/직책" style="font-size:0.67rem;padding:3px 6px;">
-            </div>
-            <button class="btn btn-outline btn-sm" onclick="saveProfile()" style="font-size:0.68rem;padding:3px 10px;margin-top:5px;">저장</button>
+        <!-- 공지사항 & 알림 -->
+        <div class="gc" id="sec-notices">
+          <div class="gc-hd">
+            <span class="gc-title">📢 공지사항 &amp; 알림</span>
+            <button class="btn btn-primary btn-sm" onclick="openNoticeModal()" style="margin-left:auto;padding:2px 7px;font-size:0.65rem;flex-shrink:0;">+ 공지</button>
           </div>
+          <div class="gc-body" id="noticeList"></div>
         </div>
 
       </div><!-- end row4 -->
@@ -698,6 +655,94 @@ select.inp option{background:#161b27;}
   </div>
 </div>
 
+<!-- SETTINGS MODAL -->
+<div class="modal-ov" id="settingsModal">
+  <div class="modal" style="width:560px;max-height:85vh;overflow-y:auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+      <h3 style="margin:0;">⚙️ 설정</h3>
+      <button class="btn btn-outline btn-sm" onclick="closeModal('settingsModal')">✕ 닫기</button>
+    </div>
+    <!-- Firebase -->
+    <div style="font-size:0.82rem;color:var(--acc);font-weight:700;margin-bottom:8px;">🔥 Firebase 설정 (Google 로그인 / 실시간 채팅)</div>
+    <div class="form-grid" style="margin-bottom:6px;">
+      <div class="fg"><label>API Key</label><input class="inp" id="set_apiKey" placeholder="AIzaSy..."></div>
+      <div class="fg"><label>Auth Domain</label><input class="inp" id="set_authDomain" placeholder="app.firebaseapp.com"></div>
+      <div class="fg"><label>Database URL</label><input class="inp" id="set_databaseURL" placeholder="https://app-rtdb.firebaseio.com"></div>
+      <div class="fg"><label>Project ID</label><input class="inp" id="set_projectId"></div>
+      <div class="fg"><label>Storage Bucket</label><input class="inp" id="set_storageBucket"></div>
+      <div class="fg"><label>Messaging Sender ID</label><input class="inp" id="set_messagingSenderId"></div>
+      <div class="fg fg-full"><label>App ID</label><input class="inp" id="set_appId"></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+      <button class="btn btn-primary btn-sm" onclick="saveSettings()">저장 및 적용</button>
+      <span id="firebaseStatus" style="font-size:0.78rem;color:var(--muted);"></span>
+    </div>
+    <!-- EmailJS -->
+    <div style="border-top:1px solid var(--border);padding-top:14px;margin-bottom:8px;">
+      <div style="font-size:0.82rem;color:var(--acc);font-weight:700;margin-bottom:8px;">📧 EmailJS 설정 (일일 결산 자동 이메일)</div>
+      <div class="form-grid" style="margin-bottom:6px;">
+        <div class="fg"><label>Service ID</label><input class="inp" id="set_ejsService" placeholder="service_xxxxxx"></div>
+        <div class="fg"><label>Template ID</label><input class="inp" id="set_ejsTemplate" placeholder="template_xxxxxx"></div>
+        <div class="fg"><label>Public Key</label><input class="inp" id="set_ejsKey" placeholder="공개 키"></div>
+        <div class="fg"><label>발송 이메일</label><input class="inp" id="set_ejsEmail" placeholder="recipient@email.com"></div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="saveEmailJS()">저장</button>
+    </div>
+    <!-- Profile -->
+    <div style="border-top:1px solid var(--border);padding-top:14px;">
+      <div style="font-size:0.82rem;color:var(--acc);font-weight:700;margin-bottom:8px;">👤 프로필</div>
+      <div class="form-grid" style="margin-bottom:6px;">
+        <div class="fg"><label>이름</label><input class="inp" id="set_name" placeholder="이름"></div>
+        <div class="fg"><label>소속/직책</label><input class="inp" id="set_dept" placeholder="부서/직책"></div>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="saveProfile()">저장</button>
+    </div>
+    <div style="text-align:center;margin-top:16px;font-size:0.72rem;color:var(--dim);">NOVA v2.0 | 202404764 김수민</div>
+  </div>
+</div>
+
+<!-- CALENDAR DAY MODAL -->
+<div class="modal-ov" id="calDayModal">
+  <div class="modal" style="width:440px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <h3 id="calDayTitle" style="margin:0;">📅 일정</h3>
+      <button class="btn btn-outline btn-sm" onclick="closeModal('calDayModal')">✕</button>
+    </div>
+    <div id="calDayEvents" style="margin-bottom:14px;max-height:200px;overflow-y:auto;"></div>
+    <div style="border-top:1px solid var(--border);padding-top:12px;">
+      <div style="font-size:0.78rem;color:var(--muted);margin-bottom:6px;">➕ 일정 추가</div>
+      <div class="mfg"><label>일정명 *</label><input class="inp" id="calDay_title" placeholder="일정명"></div>
+      <div class="mfg"><label>메모</label><input class="inp" id="calDay_memo" placeholder="메모"></div>
+      <input type="hidden" id="calDay_date">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closeModal('calDayModal')">닫기</button>
+      <button class="btn btn-primary btn-sm" onclick="saveCalDayEvent()">추가</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTICE MODAL -->
+<div class="modal-ov" id="noticeModal">
+  <div class="modal" style="width:420px;">
+    <h3 style="margin-bottom:14px;">📢 공지사항 추가</h3>
+    <div class="mfg"><label>제목 *</label><input class="inp" id="notice_title" placeholder="공지 제목"></div>
+    <div class="mfg"><label>내용</label><textarea class="inp" id="notice_content" rows="2" style="resize:none;" placeholder="공지 내용"></textarea></div>
+    <div class="mfg"><label>유형</label>
+      <select class="inp" id="notice_type">
+        <option value="urgent">🚨 긴급</option>
+        <option value="meeting">📅 회의</option>
+        <option value="info" selected>📌 일반</option>
+        <option value="success">✅ 완료</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closeModal('noticeModal')">취소</button>
+      <button class="btn btn-primary btn-sm" onclick="saveNotice()">등록</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -713,9 +758,10 @@ const S = {
   dragging: null, dragOffX: 0, dragOffY: 0
 };
 
-let tasks = [], postits = [], teamMembers = [], chatMessages = {}, calEvents = [];
+let tasks = [], postits = [], teamMembers = [], chatMessages = {}, calEvents = [], notices = [];
 let charts = {};
 let taskFilter = { search:'', status:'', member:'' };
+S.selectedDate = '';
 
 // ══════════════════════════════════════════
 // DEMO DATA
@@ -726,32 +772,64 @@ function initDemoData() {
     {id:'u2',name:'이지현',email:'jh@hufs.ac.kr',role:'manager',task:'기획 총괄',status:'online',color:'#ff6b9d'},
     {id:'u3',name:'박민준',email:'mj@hufs.ac.kr',role:'member',task:'데이터 분석',status:'online',color:'#2ed573'},
     {id:'u4',name:'최서연',email:'sy@hufs.ac.kr',role:'member',task:'보고서 작성',status:'offline',color:'#ff9f43'},
+    {id:'u5',name:'정태우',email:'tw@hufs.ac.kr',role:'member',task:'영업 지원',status:'online',color:'#4fc3f7'},
   ];
   tasks = [
-    {id:'t1',title:'대시보드 고도화 개발',assignee:'김수민',priority:'high',status:'progress',due:'2026-05-30',memo:'Firebase 연동 포함'},
-    {id:'t2',title:'월간 결산 보고서 작성',assignee:'이지현',priority:'high',status:'todo',due:'2026-05-31',memo:''},
-    {id:'t3',title:'팀원 업무 현황 분석',assignee:'박민준',priority:'mid',status:'done',due:'2026-05-25',memo:'완료'},
-    {id:'t4',title:'신규 데이터 파이프라인 구축',assignee:'박민준',priority:'mid',status:'delay',due:'2026-05-20',memo:'지연 중'},
+    {id:'t1',title:'대시보드 고도화 개발',assignee:'김수민',priority:'high',status:'progress',due:'2026-05-30',memo:'Firebase 연동 포함, Railway 배포 완료'},
+    {id:'t2',title:'월간 결산 보고서 작성',assignee:'이지현',priority:'high',status:'todo',due:'2026-05-31',memo:'5월 전체 실적 포함'},
+    {id:'t3',title:'팀원 업무 현황 분석',assignee:'박민준',priority:'mid',status:'done',due:'2026-05-25',memo:'Q2 현황 분석 완료'},
+    {id:'t4',title:'신규 데이터 파이프라인 구축',assignee:'박민준',priority:'mid',status:'delay',due:'2026-05-20',memo:'외부 API 연동 지연'},
     {id:'t5',title:'분기 실적 자료 취합',assignee:'최서연',priority:'low',status:'todo',due:'2026-06-05',memo:''},
+    {id:'t6',title:'고객사 제안서 작성',assignee:'이지현',priority:'high',status:'progress',due:'2026-05-28',memo:'A사 신규 프로젝트 제안'},
+    {id:'t7',title:'서버 인프라 점검',assignee:'김수민',priority:'mid',status:'done',due:'2026-05-22',memo:'AWS 비용 최적화 완료'},
+    {id:'t8',title:'영업 현황 주간 보고',assignee:'정태우',priority:'mid',status:'todo',due:'2026-05-29',memo:'지역별 실적 포함'},
+    {id:'t9',title:'HR 온보딩 자료 업데이트',assignee:'최서연',priority:'low',status:'done',due:'2026-05-20',memo:'신입 매뉴얼 v3 완성'},
+    {id:'t10',title:'마케팅 캠페인 성과 분석',assignee:'정태우',priority:'high',status:'delay',due:'2026-05-18',memo:'5월 SNS 광고 ROI 분석'},
+    {id:'t11',title:'Q2 목표 설정 워크숍',assignee:'이지현',priority:'mid',status:'todo',due:'2026-06-03',memo:'전 팀원 참석'},
+    {id:'t12',title:'데이터베이스 백업 자동화',assignee:'김수민',priority:'mid',status:'progress',due:'2026-06-10',memo:'cron job 설정 중'},
   ];
   chatMessages = {
     general: [
-      {id:'m1',sender:'이지현',text:'안녕하세요! 오늘 대시보드 배포 예정입니다 😊',time:'09:15',me:false},
-      {id:'m2',sender:'박민준',text:'네, 확인했습니다! Railway 배포 준비 완료했어요.',time:'09:20',me:false},
-      {id:'m3',sender:'김수민',text:'좋아요! 오늘 오후에 최종 점검하겠습니다.',time:'09:25',me:true},
+      {id:'m1',sender:'이지현',text:'안녕하세요! 오늘 대시보드 최종 배포 예정입니다 😊',time:'09:15',me:false,uid:'u2'},
+      {id:'m2',sender:'박민준',text:'네, Railway 배포 준비 완료했어요. 테스트도 통과!',time:'09:20',me:false,uid:'u3'},
+      {id:'m3',sender:'김수민',text:'좋아요! 오늘 오후 최종 점검 후 제출하겠습니다.',time:'09:25',me:true,uid:'u1'},
+      {id:'m4',sender:'정태우',text:'5월 영업 실적 취합 완료했습니다. 공유드릴게요 📊',time:'10:10',me:false,uid:'u5'},
+      {id:'m5',sender:'최서연',text:'보고서 초안 작성 중입니다. 오후에 공유드릴게요!',time:'10:45',me:false,uid:'u4'},
     ],
-    team1: [{id:'m10',sender:'이지현',text:'1팀 회의 오후 3시입니다',time:'10:00',me:false}],
-    team2: [],
-    announce: [{id:'m20',sender:'김수민',text:'📢 이번 주 금요일 전체 결산 회의 있습니다',time:'08:00',me:true}]
+    team1: [
+      {id:'m10',sender:'이지현',text:'1팀 회의 오후 3시입니다. 준비 부탁드려요 🙏',time:'10:00',me:false,uid:'u2'},
+      {id:'m11',sender:'박민준',text:'네, 분석 자료 준비해 오겠습니다.',time:'10:05',me:false,uid:'u3'},
+    ],
+    team2: [
+      {id:'m30',sender:'정태우',text:'이번 주 영업 목표 115% 달성! 고생하셨습니다 🎉',time:'17:30',me:false,uid:'u5'},
+    ],
+    announce: [
+      {id:'m20',sender:'김수민',text:'📢 이번 주 금요일(5/29) 전체 결산 회의가 있습니다. 오후 2시, 대회의실.',time:'08:00',me:true,uid:'u1'},
+      {id:'m21',sender:'이지현',text:'📌 6월 1일부터 재택근무 신청 시스템이 변경됩니다. 공지 확인해주세요.',time:'09:00',me:false,uid:'u2'},
+    ]
   };
   postits = [
-    {id:'p1',text:'Firebase 설정 완료하기\n- apiKey 입력\n- Auth 활성화',color:'#FFD93D',x:20,y:20,author:'김수민'},
-    {id:'p2',text:'Railway 배포 URL\n제출 파일에 기록!',color:'#A8E6CF',x:200,y:40,author:'김수민'},
+    {id:'p1',text:'Firebase 설정 완료하기\n- apiKey 입력\n- Auth 활성화',color:'#FFD93D',x:10,y:10,author:'김수민'},
+    {id:'p2',text:'Railway 배포 URL\n제출 파일에 기록!',color:'#A8E6CF',x:120,y:15,author:'김수민'},
+    {id:'p3',text:'5월 결산 마감\n→ 5/31까지 ⚠️',color:'#FF9FF3',x:10,y:120,author:'이지현'},
   ];
   calEvents = [
-    {id:'e1',title:'대시보드 제출',date:'2026-05-30',memo:'Railway URL 포함'},
-    {id:'e2',title:'월간 결산 회의',date:'2026-05-31',memo:'전체 팀원 참석'},
-    {id:'e3',title:'분기 보고서',date:'2026-06-15',memo:''},
+    {id:'e1',title:'대시보드 최종 제출',date:'2026-05-30',memo:'Railway URL + GitHub 링크 포함'},
+    {id:'e2',title:'월간 결산 회의',date:'2026-05-31',memo:'전체 팀원 참석 필수 / 대회의실'},
+    {id:'e3',title:'전체 결산 회의',date:'2026-05-29',memo:'오후 2시, 대회의실'},
+    {id:'e4',title:'분기 보고서 마감',date:'2026-06-15',memo:'경영진 보고용'},
+    {id:'e5',title:'Q2 목표 워크숍',date:'2026-06-03',memo:'전 팀원 참석, 오전 10시'},
+    {id:'e6',title:'고객사 미팅 (A사)',date:'2026-05-28',memo:'오전 11시, 강남 사무소'},
+    {id:'e7',title:'서버 정기 점검',date:'2026-06-07',memo:'새벽 2-4시, 서비스 일시 중단'},
+    {id:'e8',title:'신입 온보딩',date:'2026-06-09',memo:'오전 10시, 교육장'},
+    {id:'e9',title:'임원 보고',date:'2026-05-27',memo:'오전 9시, 이사회 회의실'},
+  ];
+  notices = [
+    {id:'n1',title:'📢 5월 결산 보고서 마감 안내',content:'5월 31일(일)까지 결산 보고서를 제출해 주세요. 미제출 시 불이익이 있을 수 있습니다.',type:'urgent',date:'2026-05-26'},
+    {id:'n2',title:'🏢 전사 결산 회의 일정',content:'5월 29일 오후 2시 대회의실에서 전체 팀 회의가 있습니다. 각 팀별 실적 자료 준비 요망.',type:'meeting',date:'2026-05-25'},
+    {id:'n3',title:'✅ Q1 목표 초과 달성',content:'1분기 영업 목표를 115% 달성했습니다. 전 팀원 수고 많으셨습니다!',type:'success',date:'2026-05-24'},
+    {id:'n4',title:'📌 재택근무 신청 시스템 변경',content:'6월 1일부터 재택근무 신청 방식이 변경됩니다. 새로운 시스템 매뉴얼을 확인해 주세요.',type:'info',date:'2026-05-23'},
+    {id:'n5',title:'🚨 보안 패치 적용 예정',content:'6월 7일 새벽 2-4시 서버 보안 패치 작업으로 서비스가 일시 중단됩니다.',type:'urgent',date:'2026-05-22'},
   ];
   saveAll();
 }
@@ -762,6 +840,7 @@ function saveAll() {
   localStorage.setItem('nova_team', JSON.stringify(teamMembers));
   localStorage.setItem('nova_chat', JSON.stringify(chatMessages));
   localStorage.setItem('nova_cal', JSON.stringify(calEvents));
+  localStorage.setItem('nova_notices', JSON.stringify(notices));
 }
 
 function loadAll() {
@@ -770,11 +849,13 @@ function loadAll() {
   const tm = localStorage.getItem('nova_team');
   const cm = localStorage.getItem('nova_chat');
   const ce = localStorage.getItem('nova_cal');
+  const nn = localStorage.getItem('nova_notices');
   if(t) tasks = JSON.parse(t);
   if(p) postits = JSON.parse(p);
   if(tm) teamMembers = JSON.parse(tm);
   if(cm) chatMessages = JSON.parse(cm);
   if(ce) calEvents = JSON.parse(ce);
+  if(nn) notices = JSON.parse(nn);
 }
 
 // ══════════════════════════════════════════
@@ -924,18 +1005,13 @@ function showApp() {
   const app = document.getElementById('appScreen');
   app.classList.add('show');
 
-  // Update sidebar
+  // Update topbar user info
   const rLabel = {admin:'👑 관리자', manager:'🧑‍💼 팀장', member:'👤 팀원'};
-  document.getElementById('sbRoleBadge').textContent = rLabel[S.role]||'팀원';
-  document.getElementById('sbName').textContent = S.user.name;
-  document.getElementById('sbEmail').textContent = S.user.email;
-  document.getElementById('sbAva').textContent = S.user.name.substring(0,2);
-  document.getElementById('topUser').textContent = S.user.name;
-
-  // Hide admin nav for plain members
-  if(S.role === 'member') {
-    document.getElementById('nav-admin').style.display = 'none';
-  }
+  const el_sb = document.getElementById('sbRoleBadge'); if(el_sb) el_sb.textContent = rLabel[S.role]||'팀원';
+  const el_sn = document.getElementById('sbName'); if(el_sn) el_sn.textContent = S.user.name;
+  const el_se = document.getElementById('sbEmail'); if(el_se) el_se.textContent = S.user.email;
+  const el_sa = document.getElementById('sbAva'); if(el_sa) el_sa.textContent = S.user.name.substring(0,2);
+  const el_tu = document.getElementById('topUser'); if(el_tu) el_tu.textContent = S.user.name;
 
   loadSettingsInputs();
   initEmailJSIfConfigured();
@@ -991,6 +1067,7 @@ function renderAll() {
   renderAnalytics();
   renderCalendar();
   renderAdmin();
+  renderNotices();
 }
 
 // ══════════════════════════════════════════
@@ -1419,8 +1496,8 @@ function initEmailJSIfConfigured() {
 function sendDailyEmail() {
   const cfg = JSON.parse(localStorage.getItem('nova_ejsCfg')||'{}');
   if(!cfg.service||!cfg.template||!cfg.key||!cfg.email){
-    showToast('EmailJS 설정을 먼저 완료하세요 (⚙️ 설정 탭)','error');
-    document.getElementById('sec-settings').scrollIntoView({behavior:'smooth'});
+    showToast('EmailJS 설정을 먼저 완료하세요 (⚙️ 설정 버튼)','error');
+    openSettings();
     return;
   }
   const done=tasks.filter(t=>t.status==='done').length;
@@ -1453,9 +1530,9 @@ function renderCalendar() {
     const isToday=today.getFullYear()===S.calYear&&today.getMonth()===S.calMonth&&today.getDate()===d;
     const dateStr=`${S.calYear}-${String(S.calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const evts = calEvents.filter(e=>e.date===dateStr);
-    html+=`<div class="cal-cell${isToday?' today':''}">
+    html+=`<div class="cal-cell${isToday?' today':''}" onclick="openCalDay('${dateStr}')" style="cursor:pointer;">
       <div class="cal-dn">${d}</div>
-      ${evts.map(e=>`<div class="cal-ev">${e.title}</div>`).join('')}
+      ${evts.map(e=>`<div class="cal-ev" title="${e.memo||''}">${e.title}</div>`).join('')}
     </div>`;
   }
   // Next month head
@@ -1479,6 +1556,99 @@ function saveCalEvent() {
   calEvents.push({id:'e'+Date.now(),title,date:document.getElementById('cal_date').value,memo:document.getElementById('cal_memo').value});
   saveAll(); closeModal('calModal'); renderCalendar(); updateKPI();
   showToast('일정이 추가되었습니다');
+}
+
+// ── 캘린더 날짜 클릭 세부정보 ──
+function openCalDay(dateStr) {
+  S.selectedDate = dateStr;
+  const d = new Date(dateStr+'T00:00:00');
+  const label = d.toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric',weekday:'long'});
+  document.getElementById('calDayTitle').textContent = '📅 '+label;
+  document.getElementById('calDay_date').value = dateStr;
+  document.getElementById('calDay_title').value = '';
+  document.getElementById('calDay_memo').value = '';
+  renderCalDayEvents(dateStr);
+  document.getElementById('calDayModal').classList.add('show');
+}
+
+function renderCalDayEvents(dateStr) {
+  const evts = calEvents.filter(e=>e.date===dateStr);
+  const el = document.getElementById('calDayEvents');
+  if(!evts.length) {
+    el.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:0.82rem;padding:12px;">이 날 일정이 없습니다</div>';
+    return;
+  }
+  el.innerHTML = evts.map(e=>`
+    <div style="display:flex;align-items:flex-start;gap:8px;padding:9px 10px;background:var(--card2);border-radius:6px;margin-bottom:5px;border-left:3px solid var(--acc);">
+      <div style="flex:1;">
+        <div style="font-size:0.85rem;font-weight:600;">${escapeHtml(e.title)}</div>
+        ${e.memo?`<div style="font-size:0.75rem;color:var(--muted);margin-top:2px;">${escapeHtml(e.memo)}</div>`:''}
+      </div>
+      <button onclick="deleteCalEvent('${e.id}')" style="background:rgba(255,71,87,0.15);border:none;border-radius:4px;color:var(--red);cursor:pointer;padding:3px 7px;font-size:0.72rem;">삭제</button>
+    </div>`).join('');
+}
+
+function deleteCalEvent(id) {
+  calEvents = calEvents.filter(e=>e.id!==id);
+  saveAll(); renderCalDayEvents(S.selectedDate); renderCalendar(); updateKPI();
+  showToast('일정이 삭제되었습니다');
+}
+
+function saveCalDayEvent() {
+  const title=document.getElementById('calDay_title').value.trim();
+  if(!title){showToast('일정명을 입력하세요','error');return;}
+  calEvents.push({id:'e'+Date.now(),title,date:document.getElementById('calDay_date').value,memo:document.getElementById('calDay_memo').value});
+  saveAll(); renderCalDayEvents(S.selectedDate); renderCalendar(); updateKPI();
+  document.getElementById('calDay_title').value='';
+  document.getElementById('calDay_memo').value='';
+  showToast('일정이 추가되었습니다');
+}
+
+// ── 공지사항 ──
+function renderNotices() {
+  const el=document.getElementById('noticeList');
+  if(!el) return;
+  const typeColor={urgent:'var(--red)',meeting:'var(--info)',success:'var(--green)',info:'var(--acc)'};
+  const typeLabel={urgent:'🚨 긴급',meeting:'📅 회의',success:'✅ 완료',info:'📌 일반'};
+  if(!notices.length){el.innerHTML='<div style="color:var(--muted);font-size:0.78rem;text-align:center;padding:10px;">공지사항이 없습니다</div>';return;}
+  el.innerHTML=notices.map(n=>`
+    <div style="padding:7px 9px;background:var(--card2);border-radius:5px;margin-bottom:5px;border-left:3px solid ${typeColor[n.type]||'var(--acc)'};">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div style="flex:1;">
+          <div style="font-size:0.78rem;font-weight:600;margin-bottom:2px;">${escapeHtml(n.title)}</div>
+          <div style="font-size:0.7rem;color:var(--muted);line-height:1.4;">${escapeHtml(n.content)}</div>
+          <div style="font-size:0.62rem;color:var(--dim);margin-top:3px;">${n.date} · <span style="color:${typeColor[n.type]};">${typeLabel[n.type]||'일반'}</span></div>
+        </div>
+        <button onclick="deleteNotice('${n.id}')" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:0.72rem;padding:0 2px;flex-shrink:0;">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+function openNoticeModal() {
+  document.getElementById('notice_title').value='';
+  document.getElementById('notice_content').value='';
+  document.getElementById('notice_type').value='info';
+  document.getElementById('noticeModal').classList.add('show');
+}
+
+function saveNotice() {
+  const title=document.getElementById('notice_title').value.trim();
+  if(!title){showToast('제목을 입력하세요','error');return;}
+  notices.unshift({id:'n'+Date.now(),title,content:document.getElementById('notice_content').value.trim(),type:document.getElementById('notice_type').value,date:new Date().toISOString().slice(0,10)});
+  saveAll(); closeModal('noticeModal'); renderNotices();
+  showToast('공지사항이 등록되었습니다');
+}
+
+function deleteNotice(id) {
+  notices=notices.filter(n=>n.id!==id);
+  saveAll(); renderNotices();
+  showToast('공지사항이 삭제되었습니다');
+}
+
+// ── 설정 팝업 ──
+function openSettings() {
+  loadSettingsInputs();
+  document.getElementById('settingsModal').classList.add('show');
 }
 
 // ══════════════════════════════════════════
