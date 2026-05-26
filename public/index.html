@@ -252,6 +252,46 @@ select.inp option{background:#161b27;}
 
 /* EMAIL REPORT */
 .email-btn-row{display:flex;align-items:center;gap:10px;margin-top:14px;}
+
+/* ══ DASHBOARD GRID LAYOUT ══ */
+.dash-grid{display:grid;grid-template-rows:68px 1fr 1fr 1fr;gap:5px;padding:6px 8px;height:calc(100vh - 52px);overflow:hidden;box-sizing:border-box;}
+.grid-row{display:grid;gap:5px;min-height:0;}
+.grid-row.row1{grid-template-columns:repeat(5,1fr);}
+.grid-row.row2{grid-template-columns:1.4fr 1.6fr;}
+.grid-row.row3{grid-template-columns:1.1fr 1.2fr 0.7fr;}
+.grid-row.row4{grid-template-columns:0.8fr 1.1fr 1.1fr;}
+.gc{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:7px 9px;overflow:hidden;display:flex;flex-direction:column;min-height:0;}
+.gc-hd{font-size:0.8rem;font-weight:700;margin-bottom:5px;display:flex;align-items:center;gap:5px;flex-shrink:0;overflow:hidden;}
+.gc-hd .gc-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.gc-body{flex:1;overflow-y:auto;min-height:0;}
+.gc-body::-webkit-scrollbar{width:3px;}
+.gc-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+/* KPI mini */
+.kpi-mini{display:flex;flex-direction:column;justify-content:center;background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:8px 12px;}
+.kpi-mini .km-val{font-size:1.5rem;font-weight:800;line-height:1;}
+.kpi-mini .km-label{font-size:0.63rem;color:var(--muted);margin-top:3px;}
+/* compact overrides inside grid */
+.dash-grid .cal-cell{min-height:22px;padding:2px 3px;}
+.dash-grid .cal-dn{font-size:0.63rem;}
+.dash-grid .cal-ev{font-size:0.55rem;padding:0 2px;margin-bottom:1px;}
+.dash-grid .cal-dow{font-size:0.6rem;padding:2px 0;}
+.dash-grid .team-row{padding:3px 6px;gap:6px;}
+.dash-grid .team-ava{width:20px;height:20px;font-size:0.58rem;}
+.dash-grid .team-name{font-size:0.72rem;}
+.dash-grid .team-task{font-size:0.6rem;}
+.dash-grid .task-table th{padding:4px 8px;font-size:0.67rem;}
+.dash-grid .task-table td{padding:4px 8px;font-size:0.74rem;}
+.dash-grid .b-text{font-size:0.75rem;padding:5px 9px;}
+.dash-grid .b-name{font-size:0.6rem;}
+.dash-grid .period-tab{padding:2px 7px;font-size:0.65rem;border-radius:12px;margin-bottom:0;}
+.dash-grid .period-tabs{margin-bottom:5px;gap:3px;}
+.dash-grid .postit{width:95px;min-height:75px;font-size:0.7rem;padding:6px;}
+.dash-grid .postit textarea{min-height:45px;font-size:0.7rem;}
+.dash-grid .room-item{padding:3px 8px;font-size:0.72rem;border-radius:5px;border-bottom:none;display:inline-block;}
+.dash-grid .status-pill{font-size:0.6rem;padding:1px 5px;}
+.dash-grid .badge{font-size:0.62rem;padding:1px 5px;}
+.dash-grid .user-table th{padding:4px 8px;font-size:0.67rem;}
+.dash-grid .user-table td{padding:4px 8px;font-size:0.72rem;}
 </style>
 </head>
 <body>
@@ -327,18 +367,18 @@ select.inp option{background:#161b27;}
     </div>
     <div class="sb-nav">
       <div class="nav-section">대시보드</div>
-      <a class="ni active" href="#sec-kpi" onclick="setActive(this)"><span class="ic">🏠</span>홈 요약</a>
-      <a class="ni" href="#sec-charts" onclick="setActive(this)"><span class="ic">📈</span>업무 현황</a>
+      <a class="ni active" href="#" onclick="setActive(this);return false;"><span class="ic">🏠</span>홈 요약</a>
+      <a class="ni" href="#" onclick="setActive(this);return false;"><span class="ic">📈</span>업무 현황</a>
       <div class="nav-section">업무</div>
-      <a class="ni" href="#sec-tasks" onclick="setActive(this)"><span class="ic">📋</span>업무 분장</a>
-      <a class="ni" href="#sec-chat" onclick="setActive(this)"><span class="ic">💬</span>SNS 채팅</a>
-      <a class="ni" href="#sec-postit" onclick="setActive(this)"><span class="ic">🗒️</span>포스트잇</a>
+      <a class="ni" href="#" onclick="setActive(this);return false;"><span class="ic">📋</span>업무 분장</a>
+      <a class="ni" href="#" onclick="setActive(this);return false;"><span class="ic">💬</span>SNS 채팅</a>
+      <a class="ni" href="#" onclick="setActive(this);return false;"><span class="ic">🗒️</span>포스트잇</a>
       <div class="nav-section">분석</div>
-      <a class="ni" href="#sec-analytics" onclick="setActive(this)"><span class="ic">📊</span>결산 분석</a>
-      <a class="ni" href="#sec-calendar" onclick="setActive(this)"><span class="ic">📅</span>캘린더</a>
+      <a class="ni" href="#" onclick="setActive(this);return false;"><span class="ic">📊</span>결산 분석</a>
+      <a class="ni" href="#" onclick="setActive(this);return false;"><span class="ic">📅</span>캘린더</a>
       <div class="nav-section">관리</div>
-      <a class="ni" href="#sec-admin" onclick="setActive(this)" id="nav-admin"><span class="ic">👑</span>관리자</a>
-      <a class="ni" href="#sec-settings" onclick="setActive(this)"><span class="ic">⚙️</span>설정</a>
+      <a class="ni" href="#" onclick="setActive(this);return false;" id="nav-admin"><span class="ic">👑</span>관리자</a>
+      <a class="ni" href="#" onclick="setActive(this);return false;"><span class="ic">⚙️</span>설정</a>
     </div>
     <div class="sb-foot">
       <div class="user-row">
@@ -365,283 +405,233 @@ select.inp option{background:#161b27;}
       </div>
     </div>
 
-    <!-- SINGLE SCROLLABLE PAGE -->
-    <div class="page-scroll" id="pageScroll">
+    <!-- DASHBOARD GRID (no scroll) -->
+    <div class="dash-grid" id="pageScroll">
 
-      <!-- ① KPI CARDS -->
-      <div class="section-block" id="sec-kpi">
-        <div class="sec-header">
-          <h2>🏠 홈 요약</h2>
-          <span class="sec-badge">실시간</span>
+
+      <!-- ════ ROW 1: KPI × 4 + 팀원현황 ════ -->
+      <div class="grid-row row1" id="sec-kpi">
+
+        <div class="kpi-mini">
+          <div class="km-val" id="kpi1" style="color:var(--acc);">0</div>
+          <div class="km-label">✅ 완료 업무</div>
         </div>
-        <div class="kpi-row">
-          <div class="kpi">
-            <div class="kpi-ic" style="background:rgba(108,99,255,0.15);">✅</div>
-            <div class="kpi-data">
-              <div class="label">완료 업무</div>
-              <div class="val" id="kpi1" style="color:var(--acc);">0</div>
-              <div class="change" style="color:var(--green);">이번 주</div>
-            </div>
-          </div>
-          <div class="kpi">
-            <div class="kpi-ic" style="background:rgba(255,159,67,0.15);">⏳</div>
-            <div class="kpi-data">
-              <div class="label">진행 중</div>
-              <div class="val" id="kpi2" style="color:var(--amber);">0</div>
-              <div class="change" style="color:var(--muted);">현재</div>
-            </div>
-          </div>
-          <div class="kpi">
-            <div class="kpi-ic" style="background:rgba(255,71,87,0.15);">🚨</div>
-            <div class="kpi-data">
-              <div class="label">지연</div>
-              <div class="val" id="kpi3" style="color:var(--red);">0</div>
-              <div class="change" style="color:var(--red);">즉시 확인</div>
-            </div>
-          </div>
-          <div class="kpi">
-            <div class="kpi-ic" style="background:rgba(79,195,247,0.15);">📅</div>
-            <div class="kpi-data">
-              <div class="label">이번 주 일정</div>
-              <div class="val" id="kpi4" style="color:var(--info);">0</div>
-              <div class="change" style="color:var(--muted);">건</div>
-            </div>
-          </div>
+        <div class="kpi-mini">
+          <div class="km-val" id="kpi2" style="color:var(--amber);">0</div>
+          <div class="km-label">⏳ 진행 중</div>
+        </div>
+        <div class="kpi-mini">
+          <div class="km-val" id="kpi3" style="color:var(--red);">0</div>
+          <div class="km-label">🚨 지연</div>
+        </div>
+        <div class="kpi-mini">
+          <div class="km-val" id="kpi4" style="color:var(--info);">0</div>
+          <div class="km-label">📅 이번 주 일정</div>
+        </div>
+        <!-- 팀원현황 -->
+        <div class="gc">
+          <div class="gc-hd"><span class="gc-title">👥 팀원 현황</span></div>
+          <div class="gc-body team-list" id="teamListHome"></div>
         </div>
 
-        <!-- DASH ROW: 업무현황 차트 + 팀원현황 -->
-        <div class="dash-row col-2-1" id="sec-charts">
-          <div class="dash-card">
-            <h3>📈 업무 현황 차트</h3>
-            <div class="chart-box"><canvas id="chartWork"></canvas></div>
-          </div>
-          <div class="dash-card">
-            <h3>👥 팀원 현황</h3>
-            <div class="team-list" id="teamListHome"></div>
-          </div>
-        </div>
-
-        <!-- DASH ROW: 포스트잇 미리보기 + 채팅 미리보기 + 결산 미리보기 -->
-        <div class="dash-row col-3">
-          <div class="dash-card">
-            <h3>🗒️ 포스트잇</h3>
-            <div id="postitPreview" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
-          </div>
-          <div class="dash-card">
-            <h3>💬 최근 채팅</h3>
-            <div id="chatPreview" style="display:flex;flex-direction:column;gap:6px;font-size:0.8rem;"></div>
-          </div>
-          <div class="dash-card">
-            <h3>📊 결산 요약</h3>
-            <div class="chart-box" style="height:130px;"><canvas id="chartSummary"></canvas></div>
-          </div>
-        </div>
       </div>
 
-      <!-- ② 업무 분장 -->
-      <div class="section-block" id="sec-tasks">
-        <div class="sec-header">
-          <h2>📋 업무 분장</h2>
-          <span class="sec-badge">팀원/팀장 공유</span>
-          <button class="btn btn-primary btn-sm" style="margin-left:auto;" onclick="openTaskModal()">+ 업무 추가</button>
+      <!-- ════ ROW 2: 업무현황 차트 + 업무분장 ════ -->
+      <div class="grid-row row2" id="sec-charts">
+
+        <!-- 업무현황 차트 -->
+        <div class="gc">
+          <div class="gc-hd"><span class="gc-title">📈 업무 현황 차트</span></div>
+          <div class="gc-body" style="overflow:hidden;position:relative;">
+            <canvas id="chartWork" style="position:absolute;inset:0;width:100%!important;height:100%!important;"></canvas>
+          </div>
         </div>
-        <div class="dash-card" style="padding:16px;">
-          <div class="task-toolbar">
-            <input class="inp" placeholder="🔍 업무 검색" oninput="filterTasks('search',this.value)" style="width:200px;">
-            <select class="inp" onchange="filterTasks('status',this.value)">
-              <option value="">전체 상태</option>
+
+        <!-- 업무분장 -->
+        <div class="gc" id="sec-tasks">
+          <div class="gc-hd">
+            <span class="gc-title">📋 업무 분장</span>
+            <button class="btn btn-primary btn-sm" style="margin-left:auto;font-size:0.68rem;padding:3px 9px;flex-shrink:0;" onclick="openTaskModal()">+ 추가</button>
+          </div>
+          <div style="display:flex;gap:4px;margin-bottom:4px;flex-shrink:0;">
+            <input class="inp" placeholder="🔍 검색" oninput="filterTasks('search',this.value)" style="flex:1;padding:4px 8px;font-size:0.75rem;min-width:0;">
+            <select class="inp" onchange="filterTasks('status',this.value)" style="padding:4px 6px;font-size:0.72rem;">
+              <option value="">전체</option>
               <option value="todo">할 일</option>
               <option value="progress">진행중</option>
               <option value="done">완료</option>
               <option value="delay">지연</option>
             </select>
-            <select class="inp" onchange="filterTasks('member',this.value)" id="memberFilter">
-              <option value="">전체 담당자</option>
+            <select class="inp" onchange="filterTasks('member',this.value)" id="memberFilter" style="padding:4px 6px;font-size:0.72rem;">
+              <option value="">전원</option>
             </select>
           </div>
-          <table class="task-table">
-            <thead><tr>
-              <th>업무명</th><th>담당자</th><th>우선순위</th><th>상태</th><th>마감일</th><th>작업</th>
-            </tr></thead>
-            <tbody id="taskBody"></tbody>
-          </table>
+          <div class="gc-body">
+            <table class="task-table">
+              <thead><tr>
+                <th>업무명</th><th>담당자</th><th>우선순위</th><th>상태</th><th>마감</th><th>작업</th>
+              </tr></thead>
+              <tbody id="taskBody"></tbody>
+            </table>
+          </div>
         </div>
+
       </div>
 
-      <!-- ③ SNS 채팅 -->
-      <div class="section-block" id="sec-chat">
-        <div class="sec-header">
-          <h2>💬 업무용 SNS 채팅</h2>
-          <span class="sec-badge" id="chatModeBadge">데모</span>
-        </div>
-        <div class="chat-wrap">
-          <div class="chat-rooms">
-            <div class="room-item active" onclick="selectRoom('general',this)">💬 전체 채팅</div>
+      <!-- ════ ROW 3: 채팅 + 캘린더 + 결산분석 ════ -->
+      <div class="grid-row row3">
+
+        <!-- SNS 채팅 -->
+        <div class="gc" id="sec-chat">
+          <div class="gc-hd">
+            <span class="gc-title">💬 SNS 채팅</span>
+            <span class="sec-badge" id="chatModeBadge" style="font-size:0.6rem;padding:1px 6px;margin-left:4px;flex-shrink:0;">데모</span>
+          </div>
+          <div style="display:flex;gap:3px;margin-bottom:4px;flex-shrink:0;flex-wrap:wrap;">
+            <div class="room-item active" onclick="selectRoom('general',this)">💬 전체</div>
             <div class="room-item" onclick="selectRoom('team1',this)">👥 1팀</div>
             <div class="room-item" onclick="selectRoom('team2',this)">👥 2팀</div>
             <div class="room-item" onclick="selectRoom('announce',this)">📢 공지</div>
           </div>
-          <div class="chat-body">
-            <div class="chat-hd" id="chatRoomTitle">💬 전체 채팅</div>
-            <div class="chat-msgs" id="chatMsgs"></div>
-            <div class="chat-input-row">
-              <input class="inp" id="chatInput" placeholder="메시지 입력... (Enter 전송)" onkeydown="chatKeydown(event)">
-              <button class="btn btn-primary btn-sm" onclick="sendChat()">전송</button>
+          <div class="gc-body chat-msgs" id="chatMsgs" style="display:flex;flex-direction:column;gap:5px;"></div>
+          <div style="display:flex;gap:4px;margin-top:4px;flex-shrink:0;">
+            <input class="inp" id="chatInput" placeholder="메시지 입력 (Enter)" onkeydown="chatKeydown(event)" style="flex:1;padding:5px 8px;font-size:0.78rem;min-width:0;">
+            <button class="btn btn-primary btn-sm" onclick="sendChat()" style="padding:5px 10px;font-size:0.72rem;flex-shrink:0;">전송</button>
+          </div>
+        </div>
+
+        <!-- 캘린더 -->
+        <div class="gc" id="sec-calendar">
+          <div class="gc-hd">
+            <button class="cal-nav-btn" onclick="moveMonth(-1)" style="padding:1px 6px;font-size:0.72rem;flex-shrink:0;">◀</button>
+            <span id="calTitle" style="flex:1;text-align:center;font-size:0.8rem;font-weight:700;"></span>
+            <button class="cal-nav-btn" onclick="moveMonth(1)" style="padding:1px 6px;font-size:0.72rem;flex-shrink:0;">▶</button>
+            <button class="btn btn-primary btn-sm" onclick="addCalEvent()" style="padding:2px 8px;font-size:0.65rem;margin-left:4px;flex-shrink:0;">+일정</button>
+          </div>
+          <div class="gc-body" style="overflow:hidden;">
+            <div class="cal-grid" id="calGrid"></div>
+          </div>
+        </div>
+
+        <!-- 결산 분석 -->
+        <div class="gc" id="sec-analytics">
+          <div class="gc-hd">
+            <span class="gc-title">📊 결산 분석</span>
+            <button class="btn btn-outline btn-sm" onclick="downloadCSV()" style="padding:1px 6px;font-size:0.6rem;margin-left:auto;flex-shrink:0;">⬇️CSV</button>
+          </div>
+          <div class="period-tabs" style="display:flex;gap:3px;margin-bottom:4px;flex-shrink:0;">
+            <div class="period-tab active" onclick="setPeriod('daily',this)">일일</div>
+            <div class="period-tab" onclick="setPeriod('weekly',this)">주간</div>
+            <div class="period-tab" onclick="setPeriod('monthly',this)">월간</div>
+            <div class="period-tab" onclick="setPeriod('quarterly',this)">분기</div>
+            <div class="period-tab" onclick="setPeriod('annual',this)">연간</div>
+          </div>
+          <div style="flex:1;position:relative;min-height:0;">
+            <canvas id="chartAnalytics" style="position:absolute;inset:0;width:100%!important;height:100%!important;"></canvas>
+          </div>
+          <div style="height:55px;position:relative;flex-shrink:0;margin-top:3px;">
+            <canvas id="chartDist" style="position:absolute;inset:0;width:100%!important;height:100%!important;"></canvas>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="sendDailyEmail()" id="emailBtn" style="margin-top:3px;font-size:0.65rem;padding:3px 8px;flex-shrink:0;">📧 이메일 발송</button>
+        </div>
+
+      </div>
+
+      <!-- ════ ROW 4: 포스트잇 + 관리자 + 설정 ════ -->
+      <div class="grid-row row4">
+
+        <!-- 포스트잇 -->
+        <div class="gc" id="sec-postit">
+          <div class="gc-hd">
+            <span class="gc-title">🗒️ 포스트잇</span>
+            <div style="display:flex;gap:3px;margin-left:auto;align-items:center;flex-shrink:0;">
+              <div class="color-dot sel" style="background:#FFD93D;width:13px;height:13px;" data-color="#FFD93D" onclick="selectColor(this)"></div>
+              <div class="color-dot" style="background:#FF9FF3;width:13px;height:13px;" data-color="#FF9FF3" onclick="selectColor(this)"></div>
+              <div class="color-dot" style="background:#A8E6CF;width:13px;height:13px;" data-color="#A8E6CF" onclick="selectColor(this)"></div>
+              <div class="color-dot" style="background:#74B9FF;width:13px;height:13px;" data-color="#74B9FF" onclick="selectColor(this)"></div>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="addPostit()" style="padding:2px 7px;font-size:0.65rem;margin-left:4px;flex-shrink:0;">+</button>
+          </div>
+          <div class="gc-body postit-board" id="postitBoard" style="position:relative;background:rgba(255,255,255,0.015);border-radius:4px;overflow:hidden;"></div>
+        </div>
+
+        <!-- 관리자 -->
+        <div class="gc" id="sec-admin">
+          <div class="gc-hd">
+            <span class="gc-title">👑 관리자 패널</span>
+            <button class="btn btn-primary btn-sm" onclick="openAddMemberModal()" style="margin-left:auto;padding:2px 7px;font-size:0.65rem;flex-shrink:0;">+ 팀원</button>
+          </div>
+          <div class="gc-body">
+            <table class="user-table">
+              <thead><tr><th>이름</th><th>이메일</th><th>역할</th><th>변경</th></tr></thead>
+              <tbody id="adminUserBody"></tbody>
+            </table>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:6px;">
+              <div style="background:var(--card2);border-radius:4px;padding:6px;text-align:center;">
+                <div style="font-size:1.1rem;font-weight:700;color:var(--acc);" id="adminTotal">0</div>
+                <div style="font-size:0.6rem;color:var(--muted);">전체</div>
+              </div>
+              <div style="background:var(--card2);border-radius:4px;padding:6px;text-align:center;">
+                <div style="font-size:1.1rem;font-weight:700;color:var(--green);" id="adminDone">0</div>
+                <div style="font-size:0.6rem;color:var(--muted);">완료</div>
+              </div>
+              <div style="background:var(--card2);border-radius:4px;padding:6px;text-align:center;">
+                <div style="font-size:1.1rem;font-weight:700;color:var(--red);" id="adminDelay">0</div>
+                <div style="font-size:0.6rem;color:var(--muted);">지연</div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- ④ 포스트잇 -->
-      <div class="section-block" id="sec-postit">
-        <div class="sec-header">
-          <h2>🗒️ 포스트잇</h2>
-          <span class="sec-badge">드래그 가능</span>
-        </div>
-        <div class="postit-toolbar">
-          <span style="font-size:0.82rem;color:var(--muted);">색상:</span>
-          <div class="color-dot sel" style="background:#FFD93D;" data-color="#FFD93D" onclick="selectColor(this)"></div>
-          <div class="color-dot" style="background:#FF9FF3;" data-color="#FF9FF3" onclick="selectColor(this)"></div>
-          <div class="color-dot" style="background:#A8E6CF;" data-color="#A8E6CF" onclick="selectColor(this)"></div>
-          <div class="color-dot" style="background:#74B9FF;" data-color="#74B9FF" onclick="selectColor(this)"></div>
-          <div class="color-dot" style="background:#FDCB6E;" data-color="#FDCB6E" onclick="selectColor(this)"></div>
-          <button class="btn btn-primary btn-sm" onclick="addPostit()">+ 포스트잇 추가</button>
-        </div>
-        <div class="postit-board" id="postitBoard"></div>
-      </div>
-
-      <!-- ⑤ 결산 분석 -->
-      <div class="section-block" id="sec-analytics">
-        <div class="sec-header">
-          <h2>📊 결산 분석</h2>
-          <span class="sec-badge">일일/주간/월간/분기/연간</span>
-          <button class="btn btn-outline btn-sm" style="margin-left:auto;" onclick="downloadCSV()">⬇️ CSV 다운로드</button>
-        </div>
-        <div class="period-tabs">
-          <div class="period-tab active" onclick="setPeriod('daily',this)">일일</div>
-          <div class="period-tab" onclick="setPeriod('weekly',this)">주간</div>
-          <div class="period-tab" onclick="setPeriod('monthly',this)">월간</div>
-          <div class="period-tab" onclick="setPeriod('quarterly',this)">분기</div>
-          <div class="period-tab" onclick="setPeriod('annual',this)">연간</div>
-        </div>
-        <div class="analytics-grid">
-          <div class="a-card">
-            <h3 id="analyticsTitle">일일 업무 결산</h3>
-            <div class="chart-box-lg"><canvas id="chartAnalytics"></canvas></div>
-            <div class="summary-stats" id="analyticsSummary"></div>
-          </div>
-          <div class="a-card">
-            <h3>업무 분포</h3>
-            <div class="chart-box"><canvas id="chartDist"></canvas></div>
-            <!-- 자동 이메일 발송 -->
-            <div class="email-btn-row">
-              <button class="btn btn-primary btn-sm" onclick="sendDailyEmail()" id="emailBtn">📧 일일 결산 이메일 발송</button>
+        <!-- 설정 -->
+        <div class="gc" id="sec-settings">
+          <div class="gc-hd"><span class="gc-title">⚙️ 설정</span></div>
+          <div class="gc-body">
+            <div style="font-size:0.7rem;color:var(--acc);font-weight:600;margin-bottom:4px;">🔥 Firebase 설정</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-bottom:5px;">
+              <input class="inp" id="set_apiKey" placeholder="API Key" style="font-size:0.67rem;padding:3px 6px;">
+              <input class="inp" id="set_authDomain" placeholder="Auth Domain" style="font-size:0.67rem;padding:3px 6px;">
+              <input class="inp" id="set_databaseURL" placeholder="Database URL" style="font-size:0.67rem;padding:3px 6px;">
+              <input class="inp" id="set_projectId" placeholder="Project ID" style="font-size:0.67rem;padding:3px 6px;">
+              <input class="inp" id="set_storageBucket" placeholder="Storage Bucket" style="font-size:0.67rem;padding:3px 6px;">
+              <input class="inp" id="set_messagingSenderId" placeholder="Sender ID" style="font-size:0.67rem;padding:3px 6px;">
+              <input class="inp" id="set_appId" placeholder="App ID" style="font-size:0.67rem;padding:3px 6px;grid-column:1/-1;">
             </div>
-          </div>
-        </div>
-      </div>
+            <button class="btn btn-primary btn-sm" onclick="saveSettings()" style="font-size:0.68rem;padding:3px 10px;">저장</button>
+            <span id="firebaseStatus" style="font-size:0.68rem;color:var(--muted);margin-left:6px;"></span>
 
-      <!-- ⑥ 캘린더 -->
-      <div class="section-block" id="sec-calendar">
-        <div class="sec-header">
-          <h2>📅 캘린더</h2>
-          <button class="btn btn-primary btn-sm" style="margin-left:auto;" onclick="addCalEvent()">+ 일정 추가</button>
-        </div>
-        <div class="dash-card">
-          <div class="cal-nav">
-            <button class="cal-nav-btn" onclick="moveMonth(-1)">◀</button>
-            <h3 id="calTitle"></h3>
-            <button class="cal-nav-btn" onclick="moveMonth(1)">▶</button>
-          </div>
-          <div class="cal-grid" id="calGrid"></div>
-        </div>
-      </div>
-
-      <!-- ⑦ 관리자 -->
-      <div class="section-block" id="sec-admin">
-        <div class="sec-header">
-          <h2>👑 관리자 패널</h2>
-          <span class="sec-badge" id="adminRoleBadge">관리자 전용</span>
-        </div>
-        <div class="admin-card">
-          <h3>팀원 역할 관리</h3>
-          <table class="user-table" id="adminUserTable">
-            <thead><tr><th>이름</th><th>이메일</th><th>현재 역할</th><th>변경</th></tr></thead>
-            <tbody id="adminUserBody"></tbody>
-          </table>
-          <button class="btn btn-primary btn-sm" style="margin-top:12px;" onclick="openAddMemberModal()">+ 팀원 추가</button>
-        </div>
-        <div class="admin-card">
-          <h3>업무 분장 현황 요약</h3>
-          <div class="dash-row col-3" style="margin-bottom:0;">
-            <div class="stat-cell" style="background:var(--card2);border-radius:var(--rs);padding:14px;text-align:center;">
-              <div class="sv" id="adminTotal" style="color:var(--acc);">0</div><div class="sl">전체 업무</div>
+            <div style="border-top:1px solid var(--border);margin:6px 0 4px;"></div>
+            <div style="font-size:0.7rem;color:var(--acc);font-weight:600;margin-bottom:4px;">📧 EmailJS 설정</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-bottom:5px;">
+              <input class="inp" id="set_ejsService" placeholder="Service ID" style="font-size:0.67rem;padding:3px 6px;">
+              <input class="inp" id="set_ejsTemplate" placeholder="Template ID" style="font-size:0.67rem;padding:3px 6px;">
+              <input class="inp" id="set_ejsKey" placeholder="Public Key" style="font-size:0.67rem;padding:3px 6px;">
+              <input class="inp" id="set_ejsEmail" placeholder="발송 이메일" style="font-size:0.67rem;padding:3px 6px;">
             </div>
-            <div class="stat-cell" style="background:var(--card2);border-radius:var(--rs);padding:14px;text-align:center;">
-              <div class="sv" id="adminDone" style="color:var(--green);">0</div><div class="sl">완료</div>
+            <button class="btn btn-outline btn-sm" onclick="saveEmailJS()" style="font-size:0.68rem;padding:3px 10px;">저장</button>
+
+            <div style="border-top:1px solid var(--border);margin:6px 0 4px;"></div>
+            <div style="font-size:0.7rem;color:var(--acc);font-weight:600;margin-bottom:4px;">👤 프로필</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;">
+              <input class="inp" id="set_name" placeholder="이름" style="font-size:0.67rem;padding:3px 6px;">
+              <input class="inp" id="set_dept" placeholder="소속/직책" style="font-size:0.67rem;padding:3px 6px;">
             </div>
-            <div class="stat-cell" style="background:var(--card2);border-radius:var(--rs);padding:14px;text-align:center;">
-              <div class="sv" id="adminDelay" style="color:var(--red);">0</div><div class="sl">지연</div>
-            </div>
+            <button class="btn btn-outline btn-sm" onclick="saveProfile()" style="font-size:0.68rem;padding:3px 10px;margin-top:5px;">저장</button>
           </div>
         </div>
-      </div>
 
-      <!-- ⑧ 설정 -->
-      <div class="section-block" id="sec-settings">
-        <div class="sec-header"><h2>⚙️ 설정</h2></div>
+      </div><!-- end row4 -->
 
-        <div class="set-card">
-          <h3>Firebase 설정 (Google 로그인 / 실시간 채팅)</h3>
-          <div class="set-note">
-            Google 로그인과 실시간 채팅을 사용하려면 Firebase 프로젝트 설정이 필요합니다.<br>
-            <a href="https://console.firebase.google.com" target="_blank" style="color:var(--acc);">Firebase Console</a>
-            → 프로젝트 → 설정 → 앱 추가(웹) → config 복사 후 아래에 입력하세요.
-          </div>
-          <div class="form-grid">
-            <div class="fg"><label>API Key</label><input class="inp" id="set_apiKey" placeholder="AIzaSy..."></div>
-            <div class="fg"><label>Auth Domain</label><input class="inp" id="set_authDomain" placeholder="app.firebaseapp.com"></div>
-            <div class="fg"><label>Database URL</label><input class="inp" id="set_databaseURL" placeholder="https://app-rtdb.firebaseio.com"></div>
-            <div class="fg"><label>Project ID</label><input class="inp" id="set_projectId"></div>
-            <div class="fg"><label>Storage Bucket</label><input class="inp" id="set_storageBucket"></div>
-            <div class="fg"><label>Messaging Sender ID</label><input class="inp" id="set_messagingSenderId"></div>
-            <div class="fg fg-full"><label>App ID</label><input class="inp" id="set_appId"></div>
-          </div>
-          <button class="btn btn-primary btn-sm" onclick="saveSettings()">저장 및 적용</button>
-          <span id="firebaseStatus" style="margin-left:10px;font-size:0.78rem;color:var(--muted);"></span>
-        </div>
+      <!-- 숨김 호환 요소 (JS 참조용) -->
+      <div id="postitPreview" style="display:none;"></div>
+      <div id="chatPreview" style="display:none;"></div>
+      <div id="chatRoomTitle" style="display:none;">💬 전체 채팅</div>
+      <canvas id="chartSummary" style="position:fixed;visibility:hidden;left:-999px;width:100px;height:100px;"></canvas>
+      <div id="analyticsTitle" style="display:none;">일일 업무 결산</div>
+      <div id="analyticsSummary" style="display:none;"></div>
+      <span id="adminRoleBadge" style="display:none;"></span>
 
-        <div class="set-card">
-          <h3>EmailJS 설정 (일일 결산 자동 이메일)</h3>
-          <div class="set-note">
-            <a href="https://www.emailjs.com" target="_blank" style="color:var(--acc);">EmailJS.com</a>에서 무료 계정 가입 후
-            Service ID, Template ID, Public Key를 입력하세요.<br>
-            템플릿 변수: <code style="color:var(--acc);">{{report}}</code>, <code style="color:var(--acc);">{{date}}</code>, <code style="color:var(--acc);">{{to_email}}</code>
-          </div>
-          <div class="form-grid">
-            <div class="fg"><label>Service ID</label><input class="inp" id="set_ejsService" placeholder="service_xxxxxx"></div>
-            <div class="fg"><label>Template ID</label><input class="inp" id="set_ejsTemplate" placeholder="template_xxxxxx"></div>
-            <div class="fg"><label>Public Key</label><input class="inp" id="set_ejsKey" placeholder="공개 키"></div>
-            <div class="fg"><label>발송 이메일</label><input class="inp" id="set_ejsEmail" placeholder="recipient@email.com"></div>
-          </div>
-          <button class="btn btn-primary btn-sm" onclick="saveEmailJS()">저장</button>
-        </div>
-
-        <div class="set-card">
-          <h3>프로필</h3>
-          <div class="form-grid">
-            <div class="fg"><label>이름</label><input class="inp" id="set_name" placeholder="이름"></div>
-            <div class="fg"><label>소속/직책</label><input class="inp" id="set_dept" placeholder="부서/직책"></div>
-          </div>
-          <button class="btn btn-outline btn-sm" onclick="saveProfile()">저장</button>
-        </div>
-
-        <div style="text-align:center;padding:20px 0;color:var(--muted);font-size:0.75rem;border-top:1px solid var(--border);margin-top:10px;">
-          NOVA 업무 종합대시보드 v2.0 | 한국외국어대학교 차이나데이터큐레이션전공 | 202404764 김수민
-        </div>
-      </div>
-
-    </div><!-- end page-scroll -->
+    </div><!-- end dash-grid -->
   </div><!-- end main -->
 </div><!-- end appScreen -->
 
